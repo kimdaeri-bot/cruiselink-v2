@@ -504,6 +504,27 @@ img { max-width: 100%; height: auto; }
 .privacy-detail.open { display:block; }
 .form-status { }
 
+/* Logo Slider */
+.logo-slider-wrap {
+  margin: 8px 0 32px; overflow: hidden; position: relative;
+}
+.logo-slider-wrap::before, .logo-slider-wrap::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 60px; z-index: 2; pointer-events: none;
+}
+.logo-slider-wrap::before { left: 0; background: linear-gradient(to right, white, transparent); }
+.logo-slider-wrap::after { right: 0; background: linear-gradient(to left, white, transparent); }
+.logo-slider-track {
+  display: flex; align-items: center; gap: 72px;
+  animation: logoScroll 30s linear infinite; width: max-content;
+}
+.logo-slider-track img { height: 40px; width: auto; opacity: 0.7; transition: opacity .2s; flex-shrink: 0; }
+.logo-slider-track img:hover { opacity: 1; }
+@keyframes logoScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.logo-slider-wrap:hover .logo-slider-track { animation-play-state: paused; }
+
 /* Multi-select dropdown */
 .multi-select { position: relative; cursor: pointer; }
 .multi-select-display {
