@@ -104,7 +104,7 @@ img { max-width: 100%; height: auto; }
 /* ===== DESTINATION CARDS ===== */
 .dest-slider-wrap { position: relative; display: flex; align-items: center; gap: 8px; }
 .dest-slider {
-  overflow: hidden; flex: 1; cursor: grab;
+  overflow: hidden; flex: 1; cursor: grab; padding: 8px 0;
 }
 .dest-slider:active { cursor: grabbing; }
 .dest-track {
