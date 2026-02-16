@@ -74,20 +74,27 @@ const API = {
     }).slice(0, limit || 9999);
   },
 
-  // Get recommended cruises (nearest departure, one per ship)
+  // Get recommended cruises (curated 9 picks, 2+ months out)
   async getRecommendedCruises(count = 9) {
+    const FEATURED_REFS = [
+      'MSCBE20260510TYOTYO',        // 한국출발 - MSC 벨리시마 7박
+      'NCLENC-20260503-07-SEA-SEA',  // 알래스카 - NCL 앙코르 7박
+      'MSCEU20260417BCNBCN',         // 지중해 - MSC 월드 유로파 7박
+      'MSCAM20260418MIAMIA',         // 카리브해 - MSC 월드 아메리카 7박
+      'MSCER20260502KELKEL',         // 북유럽 - MSC 유리비아 7박
+      'MSCEU20261128DXBDXB',         // 아시아 - MSC 월드 유로파 7박
+      'NCLAME-20260502-07-HNL-HNL',  // 하와이 - NCL 프라이드 오브 아메리카 7박
+      'NCLJOY-20260425-18-MIA-SEA',  // 남미 - NCL 조이 18박
+      'NCLSPR-20261212-11-SYD-SYD',  // 오세아니아 - NCL 스피릿 11박
+    ];
     const cruises = await this.loadLocalCruises();
-    const now = new Date().toISOString().slice(0, 10);
-    const seen = new Set();
-    const result = [];
-    for (const c of cruises) {
-      if (c.dateFrom < now) continue;
-      if (seen.has(c.shipSlug)) continue;
-      seen.add(c.shipSlug);
-      result.push(c);
-      if (result.length >= count) break;
-    }
-    return result;
+    const now = new Date();
+    const twoMonths = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const refMap = {};
+    cruises.forEach(c => { refMap[c.ref] = c; });
+    return FEATURED_REFS
+      .map(ref => refMap[ref])
+      .filter(c => c && c.dateFrom >= twoMonths);
   },
 
   // Get local ship by slug
