@@ -77,12 +77,12 @@ const Components = {
     <div class="cruise-card" onclick="location.href='cruise-view.html?ref=${c.ref}'">
       <div class="cruise-card-img">
         <img src="${c.image}" alt="${c.shipTitle}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 200%22><rect fill=%22%23e0e0e0%22 width=%22400%22 height=%22200%22/><text x=%2250%%22 y=%2250%%22 fill=%22%239e9e9e%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2220%22>🚢</text></svg>'">
-        ${region ? `<span class="cruise-card-tag">${region}</span>` : ''}
+        ${region ? `<span class="cruise-card-tag">${Translations.regionName(region)}</span>` : ''}
       </div>
       <div class="cruise-card-body">
-        <div class="cruise-card-operator">${c.operator} · ${c.shipTitle}</div>
+        <div class="cruise-card-operator">${Translations.operatorName(c.operator)} · ${c.shipTitleKo || Translations.shipName(c.shipTitle)}</div>
         <div class="cruise-card-title">${c.title}</div>
-        <div class="cruise-card-route">${c.portRoute}</div>
+        <div class="cruise-card-route">${c.portRouteKo || c.portRoute}</div>
         <div class="cruise-card-meta">
           <span class="cruise-card-date">📅 ${API.formatDate(c.dateFrom)} · ${c.nights}박</span>
           <span class="cruise-card-price">${API.formatPrice(fromPrice, c.currency)}</span>
@@ -100,12 +100,12 @@ const Components = {
     <div class="cruise-item">
       <div class="cruise-item-img">
         <img src="${c.image}" alt="${c.shipTitle}" loading="lazy" onerror="this.style.display='none'">
-        ${region ? `<span class="cruise-item-tag">${region}</span>` : ''}
+        ${region ? `<span class="cruise-item-tag">${Translations.regionName(region)}</span>` : ''}
       </div>
       <div class="cruise-item-body">
-        <div class="cruise-item-operator">${c.operator} · ${c.shipTitle}</div>
+        <div class="cruise-item-operator">${Translations.operatorName(c.operator)} · ${c.shipTitleKo || Translations.shipName(c.shipTitle)}</div>
         <div class="cruise-item-title">${c.title}</div>
-        <div class="cruise-item-route">🚢 ${c.portRoute}</div>
+        <div class="cruise-item-route">🚢 ${c.portRouteKo || c.portRoute}</div>
         <div class="cruise-item-hashtags">${(c.hashtags||[]).map(t => `<span>${t}</span>`).join('')}</div>
         <div class="cruise-item-footer">
           <div>
@@ -132,7 +132,7 @@ const Components = {
     <div class="cruise-card" onclick="location.href='cruise-view.html?ref=${holiday.date_ref}'">
       <div class="cruise-card-img">
         <img src="${img}" alt="${holiday.ship_title}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 200%22><rect fill=%22%23e0e0e0%22 width=%22400%22 height=%22200%22/><text x=%2250%%22 y=%2250%%22 fill=%22%239e9e9e%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2220%22>🚢</text></svg>'">
-        ${region ? `<span class="cruise-card-tag">${region}</span>` : ''}
+        ${region ? `<span class="cruise-card-tag">${Translations.regionName(region)}</span>` : ''}
       </div>
       <div class="cruise-card-body">
         <div class="cruise-card-operator">${holiday.operator_title || shipInfo?.operator || ''} · ${holiday.ship_title || ''}</div>
@@ -158,7 +158,7 @@ const Components = {
     <div class="cruise-item">
       <div class="cruise-item-img">
         <img src="${img}" alt="${holiday.ship_title}" loading="lazy" onerror="this.style.display='none'">
-        ${region ? `<span class="cruise-item-tag">${region}</span>` : ''}
+        ${region ? `<span class="cruise-item-tag">${Translations.regionName(region)}</span>` : ''}
       </div>
       <div class="cruise-item-body">
         <div class="cruise-item-operator">${holiday.operator_title || ''} · ${holiday.ship_title || ''}</div>

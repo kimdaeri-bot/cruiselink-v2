@@ -93,7 +93,7 @@
       html += `
       <section class="detail-hero">
         <div class="container">
-          <div class="operator-name">${c.operator} · ${c.shipTitleKo || c.shipTitle}</div>
+          <div class="operator-name">${Translations.operatorName(c.operator)} · ${c.shipTitleKo || Translations.shipName(c.shipTitle)}</div>
           <h1>🚢 ${c.title}</h1>
           <div class="meta">
             <span>📅 ${API.formatDateKo(c.dateFrom)} ~ ${API.formatDateKo(c.dateTo)}</span>
@@ -269,7 +269,7 @@
           html += `<h3 style="font-size:1.2rem;font-weight:700;color:var(--navy);margin:40px 0 16px">🛏️ 객실 타입</h3>`;
           html += `<div class="cabin-grid">`;
           detail.accommodations.slice(0, 8).forEach(a => {
-            html += `<div class="cabin-card">${a.image ? `<img src="${a.image}" alt="${a.name}" loading="lazy">` : ''}<div class="cabin-card-body"><h4>${a.name}</h4></div></div>`;
+            html += `<div class="cabin-card">${a.image ? `<img src="${a.image}" alt="${a.name}" loading="lazy">` : ''}<div class="cabin-card-body"><h4>${Translations.accommodationName(a.name)}</h4></div></div>`;
           });
           html += `</div>`;
         }
@@ -388,7 +388,7 @@
       let html = `
       <section class="detail-hero">
         <div class="container">
-          <div class="operator-name">${holiday.operator_title||''} · ${holiday.ship_title||''}</div>
+          <div class="operator-name">${Translations.operatorName(holiday.operator_title||'')} · ${Translations.shipName(holiday.ship_title||'')}</div>
           <h1>🚢 ${Translations.portName(holiday.starts_at?.name||'')} 출발 ${nights}박 크루즈</h1>
           <div class="meta">
             <span>📅 ${API.formatDateKo(holiday.date_from)} ~ ${API.formatDateKo(holiday.date_to)}</span>
