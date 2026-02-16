@@ -48,13 +48,21 @@ const API = {
   },
 
   // Filter local cruises
-  async filterCruises({ dest, operator, month, duration, limit, minDate } = {}) {
+  async filterCruises({ dest, operator, operators, ports, month, duration, limit, minDate } = {}) {
     const cruises = await this.loadLocalCruises();
     const now = minDate || new Date().toISOString().slice(0, 10);
     return cruises.filter(c => {
       if (c.dateFrom < now) return false;
       if (dest && c.destination !== dest) return false;
-      if (operator && !c.operator.includes(operator)) return false;
+      // Multi-select operators
+      if (operators?.length > 0 && !operators.some(op => c.operator.includes(op))) return false;
+      // Legacy single operator
+      if (operator && !operators?.length && !c.operator.includes(operator)) return false;
+      // Multi-select departure ports
+      if (ports?.length > 0) {
+        const startKo = c.startsAt?.nameKo || c.startsAt?.name || '';
+        if (!ports.some(p => startKo.includes(p) || (c.startsAt?.name||'').includes(p))) return false;
+      }
       if (month) {
         const cm = c.dateFrom.slice(0, 7);
         if (cm !== month) return false;

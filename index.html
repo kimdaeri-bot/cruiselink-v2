@@ -26,24 +26,35 @@
     <div class="filter-bar">
       <div class="filter-group">
         <label>목적지</label>
-        <select id="filterDest">
+        <select id="filterDest" onchange="updateDepartureOptions()">
           <option value="">전체</option>
           <option value="korea">한국/일본</option>
           <option value="mediterranean">지중해</option>
           <option value="alaska">알래스카</option>
           <option value="caribbean">카리브해</option>
           <option value="northern-europe">북유럽</option>
-          <option value="southeast-asia">동남아시아</option>
+          <option value="asia">아시아/중동</option>
+          <option value="south-america">남미</option>
+          <option value="oceania">오세아니아</option>
           <option value="hawaii">하와이</option>
         </select>
       </div>
       <div class="filter-group">
+        <label>출발도시</label>
+        <div class="multi-select" id="msPort" onclick="toggleMulti(this)">
+          <div class="multi-select-display">전체</div>
+          <div class="multi-select-dropdown" id="msPortDropdown"></div>
+        </div>
+      </div>
+      <div class="filter-group">
         <label>선사</label>
-        <select id="filterOperator">
-          <option value="">전체</option>
-          <option value="MSC">MSC Cruises</option>
-          <option value="Norwegian">Norwegian Cruise Line</option>
-        </select>
+        <div class="multi-select" id="msOperator" onclick="toggleMulti(this)">
+          <div class="multi-select-display">전체</div>
+          <div class="multi-select-dropdown">
+            <div class="ms-option" data-value="MSC" onclick="toggleOption(event, this)">MSC 크루즈</div>
+            <div class="ms-option" data-value="Norwegian" onclick="toggleOption(event, this)">노르웨이전 크루즈 라인</div>
+          </div>
+        </div>
       </div>
       <div class="filter-group">
         <label>출발월</label>
@@ -75,8 +86,9 @@
         <a href="destination.html?dest=alaska" class="dest-card"><span class="emoji">🏔️</span><span class="name">알래스카</span></a>
         <a href="destination.html?dest=caribbean" class="dest-card"><span class="emoji">🏝️</span><span class="name">카리브해</span></a>
         <a href="destination.html?dest=northern-europe" class="dest-card"><span class="emoji">⚓</span><span class="name">북유럽</span></a>
-        <a href="destination.html?dest=southeast-asia" class="dest-card"><span class="emoji">🌺</span><span class="name">동남아시아</span></a>
-        <a href="destination.html?dest=japan" class="dest-card"><span class="emoji">🗾</span><span class="name">일본</span></a>
+        <a href="destination.html?dest=asia" class="dest-card"><span class="emoji">🕌</span><span class="name">아시아/중동</span></a>
+        <a href="destination.html?dest=south-america" class="dest-card"><span class="emoji">🌎</span><span class="name">남미</span></a>
+        <a href="destination.html?dest=oceania" class="dest-card"><span class="emoji">🦘</span><span class="name">오세아니아</span></a>
         <a href="destination.html?dest=hawaii" class="dest-card"><span class="emoji">🌴</span><span class="name">하와이</span></a>
       </div>
     </div>
@@ -139,6 +151,58 @@
     document.getElementById('footer').innerHTML = Components.footer();
     document.getElementById('ctaSection').innerHTML = Components.ctaSection();
 
+    // === Departure port mapping per destination ===
+    const DEST_PORTS = {
+      'korea': ['도쿄','나하, 오키나와','부산','인천'],
+      'mediterranean': ['바르셀로나','마르세유','제노바','치비타베키아','나폴리','팔레르모','발레타','메시나','리보르노','트리에스테','피레우스','이스탄불','리스본','말라가','발렌시아'],
+      'alaska': ['시애틀','밴쿠버'],
+      'caribbean': ['마이애미','포트 카나베럴','갤버스턴','뉴욕','뉴올리언스','산후안','잭슨빌','보스턴','탬파'],
+      'northern-europe': ['사우샘프턴','코펜하겐','킬','헬싱키','레이캬비크','함부르크'],
+      'asia': ['아부다비','두바이','도하','싱가포르'],
+      'south-america': ['산투스','살바도르','부에노스아이레스','리우데자네이루','로스앤젤레스','마이애미'],
+      'oceania': ['시드니','오클랜드','멜버른','브리즈번'],
+      'hawaii': ['호놀룰루, 하와이'],
+    };
+
+    // === Multi-select functions ===
+    function toggleMulti(el) {
+      // Close other open multi-selects
+      document.querySelectorAll('.multi-select.open').forEach(ms => { if (ms !== el) ms.classList.remove('open'); });
+      el.classList.toggle('open');
+    }
+    function toggleOption(e, optEl) {
+      e.stopPropagation();
+      optEl.classList.toggle('selected');
+      updateMultiDisplay(optEl.closest('.multi-select'));
+    }
+    function updateMultiDisplay(msEl) {
+      const selected = [...msEl.querySelectorAll('.ms-option.selected')];
+      const display = msEl.querySelector('.multi-select-display');
+      display.textContent = selected.length === 0 ? '전체' : selected.map(o => o.textContent).join(', ');
+    }
+    function getMultiValues(msEl) {
+      return [...msEl.querySelectorAll('.ms-option.selected')].map(o => o.dataset.value);
+    }
+    // Close multi-select on outside click
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.multi-select')) {
+        document.querySelectorAll('.multi-select.open').forEach(ms => ms.classList.remove('open'));
+      }
+    });
+
+    function updateDepartureOptions() {
+      const dest = document.getElementById('filterDest').value;
+      const dropdown = document.getElementById('msPortDropdown');
+      const msPort = document.getElementById('msPort');
+      // Reset
+      dropdown.innerHTML = '';
+      msPort.querySelector('.multi-select-display').textContent = '전체';
+      if (!dest || !DEST_PORTS[dest]) return;
+      DEST_PORTS[dest].forEach(port => {
+        dropdown.innerHTML += `<div class="ms-option" data-value="${port}" onclick="toggleOption(event, this)">${port}</div>`;
+      });
+    }
+
     // Populate month filter
     const monthSelect = document.getElementById('filterMonth');
     const now = new Date();
@@ -184,18 +248,10 @@
     // Search from LOCAL JSON
     async function doSearch() {
       const dest = document.getElementById('filterDest').value;
-      const op = document.getElementById('filterOperator').value;
+      const operators = getMultiValues(document.getElementById('msOperator'));
+      const ports = getMultiValues(document.getElementById('msPort'));
       const month = document.getElementById('filterMonth').value;
       const dur = document.getElementById('filterDuration').value;
-
-      if (dest) {
-        let url = `destination.html?dest=${dest}`;
-        if (op) url += `&operator=${op}`;
-        if (month) url += `&month=${month}`;
-        if (dur) url += `&duration=${dur}`;
-        location.href = url;
-        return;
-      }
 
       const resultsSection = document.getElementById('searchResults');
       const searchList = document.getElementById('searchList');
@@ -204,7 +260,7 @@
       searchList.innerHTML = Components.loading();
 
       try {
-        const results = await API.filterCruises({ operator: op, month, duration: dur, limit: 50 });
+        const results = await API.filterCruises({ dest, operators, ports, month, duration: dur, limit: 100 });
         searchCount.textContent = `${results.length}개의 크루즈를 찾았습니다`;
         searchList.innerHTML = results.length
           ? results.map(c => Components.localCruiseItem(c)).join('')
