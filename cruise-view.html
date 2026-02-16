@@ -526,13 +526,13 @@
       .then(r => r.json())
       .then(data => {
         document.getElementById('formStatus').innerHTML =
-          '<div style="background:#e8f5e9;padding:12px;border-radius:8px;color:#2e7d32;font-size:0.9rem">✅ 문의가 접수되었습니다.<br>빠른 시일 내에 연락드리겠습니다.</div>';
+          '<div style="background:#e8f5e9;padding:12px;border-radius:8px;color:#2e7d32;font-size:0.9rem">✅ 문의가 접수되었습니다.<br>입력하신 이메일로 견적서를 회신드리겠습니다.</div>';
         document.getElementById('inquiryForm').style.display = 'none';
         btn.style.display = 'none';
       })
       .catch(() => {
         document.getElementById('formStatus').innerHTML =
-          '<div style="background:#e8f5e9;padding:12px;border-radius:8px;color:#2e7d32;font-size:0.9rem">✅ 문의가 접수되었습니다.<br>빠른 시일 내에 연락드리겠습니다.</div>';
+          '<div style="background:#e8f5e9;padding:12px;border-radius:8px;color:#2e7d32;font-size:0.9rem">✅ 문의가 접수되었습니다.<br>입력하신 이메일로 견적서를 회신드리겠습니다.</div>';
         document.getElementById('inquiryForm').style.display = 'none';
         btn.style.display = 'none';
       });
