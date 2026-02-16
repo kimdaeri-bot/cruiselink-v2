@@ -26,11 +26,13 @@ const Components = {
       <div class="container">
         <div class="footer-content">
           <div class="footer-col">
-            <h4>크루즈링크</h4>
-            <p>디플랫코리아<br>프리미엄 크루즈 여행 전문</p>
+            <h4>크루즈링크는?</h4>
+            <p><a href="#">회사소개</a></p>
+            <p><a href="#">개인정보 보호정책</a></p>
+            <p><a href="#">사이트 이용약관</a></p>
           </div>
           <div class="footer-col">
-            <h4>연락처</h4>
+            <h4>연락처 정보</h4>
             <p>📞 <a href="tel:02-3788-9119">02-3788-9119</a></p>
             <p>💬 <a href="https://pf.kakao.com/_xgYbJG" target="_blank">카카오톡 상담</a></p>
             <p>✉️ <a href="mailto:info@cruiselink.co.kr">info@cruiselink.co.kr</a></p>
@@ -43,8 +45,10 @@ const Components = {
             <p><a href="destination.html?dest=caribbean">카리브해</a></p>
           </div>
         </div>
-        <div class="footer-bottom">
-          © ${new Date().getFullYear()} 크루즈링크 by 디플랫코리아. All rights reserved.
+        <div class="footer-bottom" style="font-size:0.8rem;line-height:1.6;color:var(--gray-500)">
+          <p>서울특별시 강서구 마곡서로 152, 두산 더 랜드타워 5층</p>
+          <p>아남항공 주식회사(크루즈링크) | 대표: 김영성 | 사업자 등록번호: 104-81-84918</p>
+          <p style="margin-top:8px">© ${new Date().getFullYear()} 크루즈링크. All rights reserved.</p>
         </div>
       </div>
     </footer>`;
