@@ -4,7 +4,7 @@ const Components = {
     return `
     <header class="header">
       <div class="container">
-        <a href="index.html" class="logo">크루즈<span>링크</span></a>
+        <a href="index.html" class="logo"><img src="assets/images/logo-white.png" alt="크루즈링크" style="height:36px"></a>
         <nav class="nav" id="mainNav">
           <a href="index.html" class="${active === 'home' ? 'active' : ''}">홈</a>
           <a href="destination.html?dest=mediterranean" class="${active === 'dest' ? 'active' : ''}">목적지</a>
