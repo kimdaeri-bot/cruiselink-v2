@@ -1,0 +1,202 @@
+{
+  "EGABS": {
+    "name": "Abu Simbel",
+    "country": "Egypt",
+    "lat": "31.602771",
+    "lng": "22.374437",
+    "image": "https://assets.widgety.co.uk/2024/09/06/10/18/28/7d5ca7e8-0f78-44fb-8658-e734202182a3/axp-photography-FHvaBM3SL4Y-unsplash.jpg",
+    "descriptionEn": ""
+  },
+  "OMKHS": {
+    "name": "Khasab",
+    "country": "Oman",
+    "lat": "26.183333",
+    "lng": "56.25",
+    "image": "https://assets.widgety.co.uk/2024/09/06/10/18/28/694d93be-76b5-4541-ac44-ccc72e20f9db/musandam-dhow-tours-mpAyw_RtiG4-unsplash.jpg",
+    "descriptionEn": ""
+  },
+  "NZCHC": {
+    "name": "Christchurch",
+    "country": "New Zealand",
+    "lat": "-43.532054",
+    "lng": "172.636225",
+    "image": "https://assets.widgety.co.uk/2024/09/06/10/18/28/7ae021a1-b2cd-440e-b1c3-597b243889c2/phill-brown-XN6Afrpb1CQ-unsplash.jpg",
+    "descriptionEn": ""
+  },
+  "EGLXR": {
+    "name": "Luxor",
+    "country": "Egypt",
+    "lat": "25.6950143",
+    "lng": "32.6244475",
+    "image": "https://assets.widgety.co.uk/2019/02/22/12/35/58/8dff2fb3-9c87-4be3-b8cd-32febd576073/EGLXR - Luxor - Columns by Night.jpg",
+    "descriptionEn": ""
+  },
+  "EGEDF": {
+    "name": "Edfu",
+    "country": "Egypt",
+    "lat": "24.978548",
+    "lng": "32.87582",
+    "image": "https://assets.widgety.co.uk/2020/03/04/11/53/24/8e06ced5-75ce-4831-91df-2223f5fbad18/EGEDF - Edfu, Egypt - Alcappuncino.jpg",
+    "descriptionEn": ""
+  },
+  "INBGA": {
+    "name": "Biswanath Ghat",
+    "country": "India",
+    "lat": "26.65932",
+    "lng": "93.173493",
+    "image": "https://assets.widgety.co.uk/2024/10/23/17/21/52/9ab71852-6198-405d-b33b-d7dad21e7537/abhishek-royal-YMMGcCvpwBc-unsplash.jpg",
+    "descriptionEn": ""
+  },
+  "BSCAS": {
+    "name": "Castaway Cay",
+    "country": "Bahamas",
+    "lat": "26.093682",
+    "lng": "-77.53328",
+    "image": "https://assets.widgety.co.uk/2024/09/06/10/18/35/8c9587c7-4a33-45f7-b014-db4476082de3/matt-benson-5jIb9uq9dIU-unsplash.jpg",
+    "descriptionEn": ""
+  },
+  "BSPRC": {
+    "name": "Princess Cays",
+    "country": "Bahamas",
+    "lat": "24.625172",
+    "lng": "-76.165295",
+    "image": "https://assets.widgety.co.uk/2023/03/24/14/11/03/706fc58f-3a18-4e8e-a9a2-1c396fb09866/BSPRC - Princess Cays - Princess Cays Dock.jpg",
+    "descriptionEn": ""
+  },
+  "HTLAB": {
+    "name": "Labadee",
+    "country": "Haiti",
+    "lat": "19.786389",
+    "lng": "-72.245556",
+    "image": "https://assets.widgety.co.uk/2024/09/23/13/15/09/95b81a28-29ba-48d1-81fb-156b4d61a559/kenrick-baksh-ycBxZyw8EVU-unsplash.jpg",
+    "descriptionEn": ""
+  },
+  "USGB1": {
+    "name": "Glacier Bay National Park, Alaska",
+    "country": "United States",
+    "lat": "58.665807",
+    "lng": "-136.900215",
+    "image": "https://assets.widgety.co.uk/2019/12/10/14/01/56/07fff295-48bc-4676-8a34-0f8121030df9/USGB1 - Glacier Bay, United States - Claire Fischer.jpg",
+    "descriptionEn": ""
+  },
+  "USHG1": {
+    "name": "Hubbard Glacier",
+    "country": "United States",
+    "lat": "60.016667",
+    "lng": "-139.5",
+    "image": "https://assets.widgety.co.uk/2024/09/24/08/46/43/68d64e55-dfcb-4331-9a1e-56f2af12abc4/alaska-5208582.jpg",
+    "descriptionEn": ""
+  },
+  "AUWSY": {
+    "name": "Airlie Beach",
+    "country": "Australia",
+    "lat": "-20.267500",
+    "lng": "148.716944",
+    "image": "https://assets.widgety.co.uk/2024/09/23/13/15/10/09e50f99-644d-461b-876b-94635b4a3781/sukhdeep-padda-2phTHyZTIVU-unsplash.jpg",
+    "descriptionEn": ""
+  },
+  "FRYNR": {
+    "name": "Sanary-sur-Mer",
+    "country": "France",
+    "lat": "43.118021",
+    "lng": "5.801435",
+    "image": "https://assets.widgety.co.uk/2024/10/03/10/20/49/3e3bcfaf-a7d2-4b0b-bf12-d167b7e8cc9b/sanary-sur-mer-3829082.jpg",
+    "descriptionEn": ""
+  },
+  "BRPBO": {
+    "name": "Porto Belo",
+    "country": "Brazil",
+    "lat": "-27.154295",
+    "lng": "-48.542047",
+    "image": "https://assets.widgety.co.uk/2025/03/04/15/31/06/68b7c451-fdf6-4dd0-8de5-578a2026ca8c/brazil-1894748.jpg",
+    "descriptionEn": ""
+  },
+  "AUKFB": {
+    "name": "Kingfisher Bay, Fraser Island",
+    "country": "Australia",
+    "lat": "-25.392447",
+    "lng": "153.030516",
+    "image": null,
+    "descriptionEn": ""
+  },
+  "USICY": {
+    "name": "Icy Strait Point",
+    "country": "United States",
+    "lat": "58.129245",
+    "lng": "-135.462818",
+    "image": "https://assets.widgety.co.uk/2024/09/06/10/18/39/34eaa771-3516-412d-a369-93209bd21363/eric-hooper-RTyh3yi51PU-unsplash.jpg",
+    "descriptionEn": ""
+  },
+  "USWRG": {
+    "name": "Wrangell, Alaska",
+    "country": "United States",
+    "lat": "56.470833",
+    "lng": "-132.376667",
+    "image": "https://assets.widgety.co.uk/2024/09/24/08/47/09/bf7f1481-0c78-49a0-9a40-f7d700f0434b/dieter-mueller-cWzLeHNvTzA-unsplash.jpg",
+    "descriptionEn": ""
+  },
+  "USOGG": {
+    "name": "Kahului-Maui, Hawaii",
+    "country": "United States",
+    "lat": "20.889335",
+    "lng": "-156.472947",
+    "image": "https://assets.widgety.co.uk/2024/09/06/10/18/39/119dd29e-d5a8-4077-b240-8b6cde1645e7/mike-perez-hJX8Meck6xg-unsplash.jpg",
+    "descriptionEn": ""
+  },
+  "BRQDO": {
+    "name": "Icoaraci",
+    "country": "Brazil",
+    "lat": "-1.299873",
+    "lng": "-48.47837",
+    "image": null,
+    "descriptionEn": ""
+  },
+  "FRXBD": {
+    "name": "Bandol",
+    "country": "France",
+    "lat": "43.136418",
+    "lng": "5.754186",
+    "image": null,
+    "descriptionEn": ""
+  },
+  "NCILP": {
+    "name": "Kuto Bay, Isle des Pins",
+    "country": "New Caledonia",
+    "lat": "-22.657030",
+    "lng": "167.440077",
+    "image": null,
+    "descriptionEn": ""
+  },
+  "SCLDI": {
+    "name": "La Digue",
+    "country": "Seychelles",
+    "lat": "-4.359097",
+    "lng": "55.841242",
+    "image": "https://assets.widgety.co.uk/2024/10/03/09/39/16/c046569d-eec0-4d21-a801-1e694adc3c22/seychelles-466176.jpg",
+    "descriptionEn": ""
+  },
+  "DOPCN": {
+    "name": "Punta Cana",
+    "country": "Dominican Republic",
+    "lat": "18.582010",
+    "lng": "-68.405473",
+    "image": "https://assets.widgety.co.uk/2025/09/12/11/22/56/bd3a46de-1f45-4b4d-8d12-7060b00ebc4a/kalyan-mukherjee-hcOwJi_YWvs-unsplash.jpg",
+    "descriptionEn": ""
+  },
+  "NZBOI": {
+    "name": "Bay of Islands",
+    "country": "New Zealand",
+    "lat": "-35.18437",
+    "lng": "174.164616",
+    "image": "https://assets.widgety.co.uk/2024/09/24/08/46/57/7a073bd9-fa03-47ad-b01f-c518097b775c/rod-long-yUYStPPUthM-unsplash.jpg",
+    "descriptionEn": ""
+  },
+  "NFNLK": {
+    "name": "Norfolk Island",
+    "country": "Norfolk Island",
+    "lat": "-29.040835",
+    "lng": "167.954712",
+    "image": "https://assets.widgety.co.uk/2025/02/11/09/30/50/0058213f-4774-4138-b643-90fc4254ad3d/coast-2446324.jpg",
+    "descriptionEn": ""
+  }
+}

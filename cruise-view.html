@@ -12,7 +12,6 @@
   <div id="content">
     <div class="loading" style="padding:100px 20px"><div class="loading-spinner"></div><p>크루즈 정보를 불러오는 중...</p></div>
   </div>
-  <div id="ctaSection"></div>
   <div id="footer"></div>
 
   <script src="assets/data/translations.js"></script>
@@ -21,212 +20,147 @@
   <script>
     document.getElementById('header').innerHTML = Components.header();
     document.getElementById('footer').innerHTML = Components.footer();
-    document.getElementById('ctaSection').innerHTML = Components.ctaSection();
 
     const ref = new URLSearchParams(location.search).get('ref');
-    if (!ref) { document.getElementById('content').innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>잘못된 접근입니다</p></div>'; }
+    if (!ref) {
+      document.getElementById('content').innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>잘못된 접근입니다</p></div>';
+    }
+
+    function stripHtml(html) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html || '';
+      return tmp.textContent || '';
+    }
+
+    function fmtPrice(v) {
+      if (!v) return '-';
+      return '$' + parseFloat(v).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+    }
 
     async function load() {
       if (!ref) return;
       const content = document.getElementById('content');
 
+      // 1) Load local cruise data for immediate render
+      const cruises = await API.loadLocalCruises();
+      const localCruise = cruises.find(c => c.ref === ref);
+
+      // 2) Load ship details from local JSON
+      const ships = await API.loadLocalShips();
+      const localShip = localCruise ? ships.find(s => s.slug === localCruise.shipSlug) : null;
+      const shipDetail = localCruise ? await API.getShipDetail(localCruise.shipSlug) : null;
+
+      // Render immediately with local data
+      if (localCruise && localShip) {
+        renderPage(localCruise, localShip, shipDetail, null);
+      }
+
+      // 3) Fetch live itinerary from API
       try {
-        const h = await API.getHoliday(ref);
-        if (!h) { content.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>크루즈 정보를 찾을 수 없습니다</p></div>'; return; }
-
-        // Get ship data
-        const ships = await API.getAllShips();
-        const ship = ships.find(s => s.title === h.ship_title);
-        const shipSlug = ship?.href?.match(/ships\/([^.]+)\.json/)?.[1];
-        let shipData = null;
-        if (shipSlug) shipData = await API.getShip(shipSlug);
-
-        const price = h.headline_prices?.cruise?.double;
-        const fromPrice = price?.from_balcony || price?.from_inside;
-        const tags = API.hashtags(h);
-        const route = API.routeString(h.itinerary);
-
-        document.title = `${Translations.portName(h.starts_at?.name||'')} 출발 ${h.cruise_nights||h.duration_days||''}박 크루즈 - 크루즈링크`;
-
-        let html = '';
-
-        // HERO
-        html += `
-        <section class="detail-hero">
-          <div class="container">
-            <div class="operator-name">${h.operator_title || ''} · ${h.ship_title || ''}</div>
-            <h1>${Translations.portName(h.starts_at?.name||'')} 출발 ${h.cruise_nights||h.duration_days||''}박 크루즈</h1>
-            <div class="meta">
-              <span>📅 ${API.formatDateKo(h.date_from)} ~ ${API.formatDateKo(h.date_to)}</span>
-              <span>🌙 ${h.cruise_nights||h.duration_days||''}박 ${h.duration_days||''}일</span>
-              <span>🚢 ${h.ship_title||''}</span>
-              <span>🌍 ${h.countries?.map(c => Translations.countryName(c)).join(', ') || ''}</span>
-            </div>
-            <div class="hashtags">${tags.map(t => `<span>${t}</span>`).join('')}</div>
-            <div class="price-big">${API.formatPrice(fromPrice)} <small>/1인 2인기준</small></div>
-            <div class="hero-ctas">
-              <a href="https://pf.kakao.com/_xgYbJG" target="_blank" class="btn btn-orange">💬 카카오톡 상담</a>
-              <a href="tel:02-3788-9119" class="btn btn-white">📞 전화 상담</a>
-              <a href="mailto:info@londonshow.co.kr" class="btn btn-outline">✉️ 이메일 문의</a>
-            </div>
-          </div>
-        </section>`;
-
-        // Main ship image
-        if (ship?.cover_image_href) {
-          html += `<div class="container"><div class="main-ship-image"><img src="${ship.cover_image_href}" alt="${h.ship_title}" loading="lazy"></div></div>`;
+        const holiday = await API.getHoliday(ref);
+        if (holiday) {
+          if (localCruise && localShip) {
+            renderItinerary(holiday);
+            renderPricing(holiday, shipDetail);
+          } else {
+            // No local data - render from API only
+            renderFromAPI(holiday, shipDetail);
+          }
+        } else if (!localCruise) {
+          content.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>크루즈 정보를 찾을 수 없습니다</p></div>';
         }
+      } catch (e) {
+        console.error('API fetch failed:', e);
+        if (!localCruise) {
+          content.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>데이터를 불러올 수 없습니다</p></div>';
+        }
+      }
+    }
 
-        // Info bar
-        html += `
+    function renderPage(c, ship, detail, holiday) {
+      const nights = c.nights;
+      const fromPrice = c.priceBalcony || c.priceOutside || c.priceInside;
+      const priceStr = fromPrice ? API.formatPrice(fromPrice, c.currency) : '문의';
+      const countries = (c.countriesKo || []).join(', ') || (c.countries || []).join(', ');
+
+      document.title = `${c.title} - 크루즈링크`;
+
+      let html = '';
+
+      // === HERO ===
+      html += `
+      <section class="detail-hero">
         <div class="container">
-          <div class="info-bar">
-            <div class="info-bar-item"><div class="label">선박</div><div class="value">${h.ship_title||''}</div></div>
-            <div class="info-bar-item"><div class="label">기간</div><div class="value">${h.cruise_nights||h.duration_days||''}박 ${h.duration_days||''}일</div></div>
-            <div class="info-bar-item"><div class="label">출발/도착</div><div class="value">${Translations.portName(h.starts_at?.name||'')} → ${Translations.portName(h.ends_at?.name||'')}</div></div>
-            <div class="info-bar-item"><div class="label">가격(2인기준)</div><div class="value" style="color:var(--orange)">${API.formatPrice(fromPrice)}</div></div>
+          <div class="operator-name">${c.operator} · ${c.shipTitleKo || c.shipTitle}</div>
+          <h1>🚢 ${c.title}</h1>
+          <div class="meta">
+            <span>📅 ${API.formatDateKo(c.dateFrom)} ~ ${API.formatDateKo(c.dateTo)}</span>
+            <span>🌙 ${nights}박 ${nights+1}일</span>
+            <span>🚢 ${c.shipTitleKo || c.shipTitle}</span>
+            <span>🌏 ${countries}</span>
           </div>
-        </div>`;
+          <div class="detail-hero-tags">
+            ${(c.hashtags||[]).slice(0,6).map(t => `<span class="hero-tag">${t}</span>`).join('')}
+          </div>
+          <div class="price-big">${priceStr} <small>/1인 2인기준</small></div>
+          <div class="hero-ctas">
+            <a href="https://pf.kakao.com/_xgYbJG" target="_blank" class="btn btn-orange">💬 카카오톡 상담</a>
+            <a href="tel:02-3788-9119" class="btn btn-white">📞 전화 상담</a>
+            <a href="tel:02-3788-9119" class="btn btn-outline">☎️ 02-3788-9119</a>
+          </div>
+        </div>
+      </section>`;
 
-        // ITINERARY
-        if (h.itinerary?.days?.length) {
-          html += `<section class="section"><div class="container">
-            <h2 class="section-title">상세 일정</h2>
-            <p class="section-subtitle">${route}</p>
-            <div class="day-cards">`;
+      // === MAIN SHIP IMAGE ===
+      if (ship.coverImage) {
+        html += `<div class="container"><div class="main-ship-image"><img src="${ship.coverImage}" alt="${c.shipTitle}" loading="lazy"></div></div>`;
+      }
 
-          for (const day of h.itinerary.days) {
-            const loc = day.locations?.[0];
-            const isSeaDay = !loc || day.day_type?.includes('SEA') || day.day_name?.toLowerCase().includes('at sea');
-            const portName = loc ? Translations.portName(loc.name) : '종일 항해';
-            const countryName = loc ? Translations.countryName(loc.country) : '';
-            const arrTime = loc?.arrival_time || '';
-            const depTime = loc?.departure_time || '';
-            const timeStr = arrTime && depTime ? `${arrTime} - ${depTime}` : arrTime || depTime || '';
-            const portImages = loc?.widgety_data?.images || [];
-            const portDesc = loc ? (Translations.portDesc(loc.name) || '') : '';
+      // === INFO BAR ===
+      html += `
+      <div class="container">
+        <div class="info-bar">
+          <div class="info-bar-item"><div class="label">🚢 선박</div><div class="value">${c.shipTitleKo || c.shipTitle}</div></div>
+          <div class="info-bar-item"><div class="label">🌙 기간</div><div class="value">${nights}박 ${nights+1}일</div></div>
+          <div class="info-bar-item"><div class="label">🚪 출발/도착</div><div class="value">${c.startsAt?.nameKo || c.startsAt?.name || ''} → ${c.endsAt?.nameKo || c.endsAt?.name || ''}</div></div>
+          <div class="info-bar-item"><div class="label">💰 2인1실 기준</div><div class="value" style="color:var(--orange)">${priceStr}</div></div>
+        </div>
+      </div>`;
 
-            if (isSeaDay) {
-              html += `
-              <div class="day-card sea-day">
-                <div class="day-card-header">
-                  <span class="day-num">DAY ${day.day}</span>
-                  <span class="day-port">🌊 종일 항해</span>
-                  <span class="day-time"></span>
-                </div>
-                <div class="day-card-body">
-                  <p>오늘은 종일 항해일입니다. 선박의 다양한 시설과 엔터테인먼트를 즐기세요. 수영장, 스파, 카지노, 레스토랑 등 다채로운 선상 활동이 기다리고 있습니다.</p>
-                </div>
-              </div>`;
-            } else {
-              html += `
-              <div class="day-card">
-                <div class="day-card-header">
-                  <span class="day-num">DAY ${day.day}</span>
-                  <span class="day-port">${portName}${countryName ? ', ' + countryName : ''}</span>
-                  <span class="day-time">${timeStr ? '⏰ ' + timeStr : ''}</span>
-                </div>
-                <div class="day-card-body">
-                  ${portImages[0] ? `<img src="${portImages[0].href}" alt="${portName}" class="port-img" loading="lazy">` : ''}
-                  ${portDesc ? `<p class="port-desc">${portDesc}</p>` : ''}
-                  ${portImages.length > 1 ? `<div class="day-card-images">${portImages.slice(1, 4).map(img => `<img src="${img.href}" alt="${img.name||portName}" loading="lazy">`).join('')}</div>` : ''}
-                </div>
-              </div>`;
-            }
-          }
-          html += `</div></div></section>`;
-        }
+      // === ITINERARY PLACEHOLDER ===
+      html += `
+      <section class="section" id="itinerary-section">
+        <div class="container">
+          <h2 class="section-title">🗓️ 상세 일정</h2>
+          <p class="section-subtitle">${c.portRoute || ''}</p>
+          <div id="day-cards-container">
+            <div class="loading"><div class="loading-spinner"></div><p>일정 데이터를 불러오는 중...</p></div>
+          </div>
+        </div>
+      </section>`;
 
-        // SHIP INFO
-        if (shipData || ship) {
-          const s = shipData || ship;
-          const facts = s.ship_facts || {};
-          html += `<section class="section" style="background:var(--gray-50)"><div class="container">
-            <h2 class="section-title">선박 소개 - ${h.ship_title}</h2>
-            <div class="spec-grid">`;
-          const specs = [
-            ['취항연도', facts.launch_year || '-'],
-            ['총톤수', facts.gross_tonnage ? facts.gross_tonnage.toLocaleString() + 't' : '-'],
-            ['최대정원', facts.capacity ? facts.capacity.toLocaleString() + '명' : '-'],
-            ['승무원', facts.crew_count ? facts.crew_count.toLocaleString() + '명' : '-'],
-            ['전장', facts.length ? facts.length + 'm' : '-'],
-            ['전폭', facts.width ? facts.width + 'm' : '-'],
-            ['데크', facts.deck_count ? facts.deck_count + '개' : '-'],
-            ['객실', facts.cabin_count ? facts.cabin_count.toLocaleString() + '실' : '-'],
-          ];
-          specs.forEach(([label, value]) => {
-            html += `<div class="spec-item"><div class="spec-label">${label}</div><div class="spec-value">${value}</div></div>`;
-          });
-          html += `</div>`;
+      // === SHIP INFO ===
+      html += renderShipSection(c, ship, detail);
 
-          // Tabs
-          const tabData = [];
-          if (s.dining?.intro) tabData.push({ id: 'dining', label: '🍽️ 다이닝', content: s.dining.intro });
-          if (s.entertainment?.intro) tabData.push({ id: 'entertainment', label: '🎭 엔터테인먼트', content: s.entertainment.intro });
-          if (s.health_and_fitness?.intro) tabData.push({ id: 'spa', label: '💆 스파', content: s.health_and_fitness.intro });
-          if (s.kids_and_teens?.intro) tabData.push({ id: 'kids', label: '👶 키즈', content: s.kids_and_teens.intro });
+      // === PRICING PLACEHOLDER ===
+      html += `<section class="section" id="pricing-section"></section>`;
 
-          if (tabData.length) {
-            html += `<div class="tabs">${tabData.map((t, i) => `<button class="tab-btn ${i === 0 ? 'active' : ''}" onclick="switchTab('${t.id}')">${t.label}</button>`).join('')}</div>`;
-            tabData.forEach((t, i) => {
-              html += `<div class="tab-content ${i === 0 ? 'active' : ''}" id="tab-${t.id}">${t.content}</div>`;
-            });
-          }
-          html += `</div></section>`;
-        }
-
-        // PRICING
-        if (price) {
-          html += `<section class="section"><div class="container">
-            <h2 class="section-title">객실 & 요금</h2>
-            <p class="section-subtitle">1인 기준 요금 (세금/항만료 별도)</p>
-            <table class="price-table">
-              <thead><tr><th>객실 타입</th><th>2인 1실</th><th>1인 1실</th><th>3인 1실</th></tr></thead>
-              <tbody>`;
-          const types = [
-            { key: 'inside', label: '내측 (Inside)' },
-            { key: 'outside', label: '오션뷰 (Outside)' },
-            { key: 'balcony', label: '발코니 (Balcony)' },
-            { key: 'suite', label: '스위트 (Suite)' },
-          ];
-          const single = h.headline_prices?.cruise?.single;
-          const triple = h.headline_prices?.cruise?.triple;
-          types.forEach(t => {
-            const dp = price?.['from_' + t.key];
-            const sp = single?.['from_' + t.key];
-            const tp = triple?.['from_' + t.key];
-            if (dp || sp || tp) {
-              html += `<tr><td class="room-type">${t.label}</td><td>${API.formatPrice(dp)}</td><td>${API.formatPrice(sp)}</td><td>${API.formatPrice(tp)}</td></tr>`;
-            }
-          });
-          html += `</tbody></table>`;
-
-          // Cabin photos from ship data
-          if (shipData?.accomodation_types?.length) {
-            html += `<h3 style="margin-top:32px;color:var(--navy);font-weight:700">객실 타입</h3><div class="cabin-grid" style="margin-top:16px">`;
-            shipData.accomodation_types.slice(0, 8).forEach(at => {
-              const imgs = at.images || [];
-              const img = imgs[0]?.href || '';
-              html += `<div class="cabin-card">${img ? `<img src="${img}" alt="${at.name}" loading="lazy">` : ''}<div class="cabin-card-body"><h4>${at.name}</h4></div></div>`;
-            });
-            html += `</div>`;
-          }
-          html += `</div></section>`;
-        }
-
-        // INCLUDED / EXCLUDED
-        html += `<section class="section" style="background:var(--gray-50)"><div class="container">
-          <h2 class="section-title">포함 / 불포함 사항</h2>
-          <div class="checklist-grid">
+      // === INCLUDE/EXCLUDE ===
+      html += `
+      <section class="section" style="background:var(--gray-50)">
+        <div class="container">
+          <h2 class="section-title">📋 포함 / 불포함 사항</h2>
+          <div class="checklist-grid" style="margin-top:24px">
             <div>
               <h3 style="color:var(--navy);margin-bottom:16px">✅ 포함 사항</h3>
               <ul class="checklist included">
                 <li>객실 숙박</li>
-                <li>메인 레스토랑 & 뷔페 식사</li>
-                <li>선상 엔터테인먼트 (쇼, 공연)</li>
-                <li>수영장 & 피트니스 센터</li>
-                <li>키즈 클럽 프로그램</li>
+                <li>메인 레스토랑 & 뷔페 식사 (조식·중식·석식)</li>
+                <li>선상 엔터테인먼트 (쇼, 공연, 수영장)</li>
+                <li>피트니스 센터</li>
+                <li>키즈 & 틴즈 클럽 프로그램</li>
                 <li>객실 룸서비스 (기본)</li>
+                <li>기항지 셔틀버스 (일부)</li>
               </ul>
             </div>
             <div>
@@ -237,26 +171,274 @@
                 <li>주류 및 음료 패키지</li>
                 <li>기항지 관광 (Shore Excursion)</li>
                 <li>스파 & 뷰티 트리트먼트</li>
-                <li>Wi-Fi 인터넷</li>
+                <li>Wi-Fi 인터넷 패키지</li>
                 <li>세탁 서비스</li>
                 <li>여행자 보험</li>
               </ul>
             </div>
           </div>
-        </div></section>`;
+        </div>
+      </section>`;
 
-        content.innerHTML = html;
-      } catch (e) {
-        console.error(e);
-        content.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>데이터를 불러올 수 없습니다</p></div>';
-      }
+      // === CTA ===
+      html += `
+      <section class="cta-section">
+        <div class="container">
+          <h2>이 크루즈가 마음에 드셨나요?</h2>
+          <p>크루즈링크 전문 상담원이 최적의 객실과 가격을 안내해드립니다.</p>
+          <div class="cta-buttons">
+            <a href="https://pf.kakao.com/_xgYbJG" target="_blank" class="btn btn-orange">💬 카카오톡 상담</a>
+            <a href="tel:02-3788-9119" class="btn btn-white">📞 02-3788-9119</a>
+            <a href="mailto:info@londonshow.co.kr" class="btn btn-outline">✉️ 이메일 문의</a>
+          </div>
+        </div>
+      </section>`;
+
+      content.innerHTML = html;
     }
 
-    function switchTab(id) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      event.target.classList.add('active');
-      document.getElementById('tab-' + id)?.classList.add('active');
+    function renderShipSection(c, ship, detail) {
+      let html = `
+      <section class="section" style="background:var(--gray-50)">
+        <div class="container">
+          <h2 class="section-title">🚢 ${c.shipTitleKo || c.shipTitle} 소개</h2>
+          ${detail?.teaserEn ? `<p class="section-subtitle" style="max-width:800px;margin:0 auto 24px;text-align:center">${detail.teaserEn}</p>` : ''}
+
+          <div class="spec-grid">`;
+
+      const specs = [
+        ['취항연도', ship.launchYear || '-'],
+        ['총톤수', ship.grossTonnage ? ship.grossTonnage.toLocaleString() + 't' : '-'],
+        ['최대정원', ship.capacity ? ship.capacity.toLocaleString() + '명' : '-'],
+        ['승무원', ship.crewCount ? ship.crewCount.toLocaleString() + '명' : '-'],
+        ['전장', ship.length ? ship.length + 'm' : '-'],
+        ['전폭', ship.width ? ship.width + 'm' : '-'],
+        ['데크', ship.deckCount ? ship.deckCount + '개' : '-'],
+        ['객실', ship.cabinCount ? ship.cabinCount.toLocaleString() + '실' : '-'],
+      ];
+      specs.forEach(([label, value]) => {
+        html += `<div class="spec-item"><div class="spec-value">${value}</div><div class="spec-label">${label}</div></div>`;
+      });
+      html += `</div>`;
+
+      // Facility tabs from ships-detail.json
+      if (detail) {
+        const tabs = [];
+        if (detail.dining?.length) tabs.push({id:'dining', label:`🍽️ 다이닝 (${detail.dining.length})`, items: detail.dining});
+        if (detail.entertainment?.length) tabs.push({id:'ent', label:`🎭 엔터테인먼트 (${detail.entertainment.length})`, items: detail.entertainment});
+        if (detail.health?.length) tabs.push({id:'health', label:`💆 스파·피트니스 (${detail.health.length})`, items: detail.health});
+        if (detail.kids?.length) tabs.push({id:'kids', label:`👶 키즈 (${detail.kids.length})`, items: detail.kids});
+        if (detail.deckplans?.length) tabs.push({id:'decks', label:`📐 덱플랜 (${detail.deckplans.length})`, items: detail.deckplans});
+
+        if (tabs.length) {
+          html += `<div class="ship-tabs" style="margin-top:40px">`;
+          html += `<div class="tabs">`;
+          tabs.forEach((t, i) => {
+            html += `<button class="tab-btn ${i===0?'active':''}" onclick="switchShipTab(this,'ship-panel-${t.id}')">${t.label}</button>`;
+          });
+          html += `</div>`;
+
+          tabs.forEach((t, i) => {
+            html += `<div class="tab-content ${i===0?'active':''}" id="ship-panel-${t.id}">`;
+            if (t.id === 'decks') {
+              html += `<div class="deck-scroll-wrap">`;
+              t.items.forEach(d => {
+                html += `<div class="deck-card-v2">${d.image ? `<img src="${d.image}" alt="${d.name}" loading="lazy">` : ''}<div class="deck-name-v2">${Translations.facilityName(d.name) !== d.name ? Translations.facilityName(d.name) : d.name}</div></div>`;
+              });
+              html += `</div>`;
+            } else {
+              t.items.slice(0, 12).forEach(item => {
+                const tr = Translations.facilityKo[item.name];
+                const name = tr ? tr.name : item.name;
+                const desc = tr ? tr.desc : (item.descEn || '').slice(0, 150);
+                html += `
+                <div class="facility-row">
+                  ${item.image ? `<img src="${item.image}" alt="${name}" loading="lazy">` : ''}
+                  <div class="facility-row-body">
+                    <div class="facility-row-name">${name}</div>
+                    ${desc ? `<div class="facility-row-desc">${desc}</div>` : ''}
+                  </div>
+                </div>`;
+              });
+            }
+            html += `</div>`;
+          });
+          html += `</div>`;
+        }
+
+        // Cabin preview
+        if (detail.accommodations?.length) {
+          html += `<h3 style="font-size:1.2rem;font-weight:700;color:var(--navy);margin:40px 0 16px">🛏️ 객실 타입</h3>`;
+          html += `<div class="cabin-grid">`;
+          detail.accommodations.slice(0, 8).forEach(a => {
+            html += `<div class="cabin-card">${a.image ? `<img src="${a.image}" alt="${a.name}" loading="lazy">` : ''}<div class="cabin-card-body"><h4>${a.name}</h4></div></div>`;
+          });
+          html += `</div>`;
+        }
+      }
+
+      html += `</div></section>`;
+      return html;
+    }
+
+    function renderItinerary(holiday) {
+      const container = document.getElementById('day-cards-container');
+      if (!container || !holiday.itinerary?.days) {
+        if (container) container.innerHTML = '<p style="text-align:center;color:#999">일정 데이터가 없습니다.</p>';
+        return;
+      }
+
+      let html = '<div class="day-cards">';
+      for (const day of holiday.itinerary.days) {
+        const loc = day.locations?.[0];
+        const isSeaDay = !loc || day.day_type?.includes('SEA') || day.day_name?.toLowerCase().includes('at sea');
+
+        if (isSeaDay) {
+          html += `
+          <div class="day-card sea-day">
+            <div class="day-card-header">
+              <span class="day-num">DAY ${day.day}</span>
+              <span class="day-port">🌊 종일 항해</span>
+              <span class="day-time"></span>
+            </div>
+            <div class="day-card-body" style="text-align:center;color:var(--gray-500)">
+              <p>오늘은 종일 항해일입니다. 수영장, 스파, 카지노, 레스토랑 등 선박의 다양한 시설과 엔터테인먼트를 즐기며 편안한 하루를 보내세요.</p>
+            </div>
+          </div>`;
+        } else {
+          const portName = Translations.portName(loc.name);
+          const countryName = Translations.countryName(loc.country);
+          const arrTime = loc.arrival_time || '';
+          const depTime = loc.departure_time || '';
+          const timeStr = arrTime && depTime ? `${arrTime} 입항 ~ ${depTime} 출항` : depTime ? `${depTime} 출항` : arrTime ? `${arrTime} 입항` : '';
+          const portImages = loc.widgety_data?.images || loc.operator_data?.images || [];
+          const mainImg = portImages[0]?.href;
+          const descEn = stripHtml(loc.widgety_data?.description || '');
+          const descKo = Translations.portDesc(loc.name);
+          const desc = descKo || descEn;
+
+          html += `
+          <div class="day-card">
+            <div class="day-card-header">
+              <span class="day-num">DAY ${day.day}</span>
+              <span class="day-port">📍 ${portName}${countryName ? ', ' + countryName : ''}</span>
+              <span class="day-time">${timeStr ? '⏰ ' + timeStr : ''}</span>
+            </div>
+            ${mainImg ? `<div class="day-card-img-wrap"><img src="${mainImg}" alt="${portName}" class="day-card-main-img" loading="lazy"></div>` : ''}
+            <div class="day-card-body">
+              ${desc ? `<p class="port-desc">${desc}</p>` : ''}
+              ${portImages.length > 1 ? `<div class="day-card-images">${portImages.slice(1, 4).map(img => `<img src="${img.href}" alt="${img.name || portName}" loading="lazy">`).join('')}</div>` : ''}
+            </div>
+          </div>`;
+        }
+      }
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function renderPricing(holiday, shipDetail) {
+      const section = document.getElementById('pricing-section');
+      if (!section) return;
+
+      const prices = holiday.headline_prices?.cruise;
+      if (!prices) return;
+
+      const double = prices.double;
+      const single = prices.single;
+      const triple = prices.triple;
+
+      let html = `
+      <div class="container">
+        <h2 class="section-title">💰 객실 & 요금</h2>
+        <p class="section-subtitle">1인 기준 요금 (2인 1실 기준, 세금/항만료 별도)</p>
+        <table class="price-table">
+          <thead><tr><th>객실 타입</th><th>2인 1실</th><th>1인 1실</th><th>3인 1실</th></tr></thead>
+          <tbody>`;
+
+      const types = [
+        {key:'inside', label:'🚪 내측 (Inside)'},
+        {key:'outside', label:'🪟 오션뷰 (Outside)'},
+        {key:'balcony', label:'🌅 발코니 (Balcony)'},
+        {key:'suite', label:'👑 스위트 (Suite)'},
+      ];
+      types.forEach(t => {
+        const dp = double?.['from_' + t.key];
+        const sp = single?.['from_' + t.key];
+        const tp = triple?.['from_' + t.key];
+        if (dp || sp || tp) {
+          html += `<tr><td class="room-type">${t.label}</td><td style="color:var(--orange);font-weight:700">${fmtPrice(dp)}</td><td>${fmtPrice(sp)}</td><td>${fmtPrice(tp)}</td></tr>`;
+        }
+      });
+
+      html += `</tbody></table>
+        <p style="margin-top:12px;font-size:0.85rem;color:var(--gray-500)">※ 요금은 예고 없이 변동될 수 있습니다. 정확한 요금은 문의해주세요.</p>
+      </div>`;
+
+      section.innerHTML = html;
+    }
+
+    function renderFromAPI(holiday, shipDetail) {
+      // Fallback: render entirely from API data (no local cruise found)
+      const nights = holiday.cruise_nights || holiday.duration_days || 0;
+      const price = holiday.headline_prices?.cruise?.double;
+      const fromPrice = price?.from_balcony || price?.from_inside;
+      const priceStr = fromPrice ? API.formatPrice(fromPrice) : '문의';
+      const countries = (holiday.countries || []).map(c => Translations.countryName(c)).join(', ');
+      const route = API.routeString(holiday.itinerary);
+
+      document.title = `${Translations.portName(holiday.starts_at?.name||'')} 출발 ${nights}박 크루즈 - 크루즈링크`;
+
+      let html = `
+      <section class="detail-hero">
+        <div class="container">
+          <div class="operator-name">${holiday.operator_title||''} · ${holiday.ship_title||''}</div>
+          <h1>🚢 ${Translations.portName(holiday.starts_at?.name||'')} 출발 ${nights}박 크루즈</h1>
+          <div class="meta">
+            <span>📅 ${API.formatDateKo(holiday.date_from)} ~ ${API.formatDateKo(holiday.date_to)}</span>
+            <span>🌙 ${nights}박 ${parseInt(nights)+1}일</span>
+            <span>🚢 ${holiday.ship_title||''}</span>
+            <span>🌏 ${countries}</span>
+          </div>
+          <div class="price-big">${priceStr} <small>/1인 2인기준</small></div>
+          <div class="hero-ctas">
+            <a href="https://pf.kakao.com/_xgYbJG" target="_blank" class="btn btn-orange">💬 카카오톡 상담</a>
+            <a href="tel:02-3788-9119" class="btn btn-white">📞 전화 상담</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <h2 class="section-title">🗓️ 상세 일정</h2>
+          <p class="section-subtitle">${route}</p>
+          <div id="day-cards-container"></div>
+        </div>
+      </section>
+
+      <section class="section" id="pricing-section"></section>
+
+      <section class="cta-section">
+        <div class="container">
+          <h2>이 크루즈가 마음에 드셨나요?</h2>
+          <p>크루즈링크 전문 상담원이 최적의 객실과 가격을 안내해드립니다.</p>
+          <div class="cta-buttons">
+            <a href="https://pf.kakao.com/_xgYbJG" target="_blank" class="btn btn-orange">💬 카카오톡 상담</a>
+            <a href="tel:02-3788-9119" class="btn btn-white">📞 02-3788-9119</a>
+          </div>
+        </div>
+      </section>`;
+
+      content.innerHTML = html;
+      renderItinerary(holiday);
+      renderPricing(holiday, shipDetail);
+    }
+
+    function switchShipTab(el, panelId) {
+      el.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      const parent = el.closest('.ship-tabs');
+      parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(panelId)?.classList.add('active');
     }
 
     load();

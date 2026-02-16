@@ -95,6 +95,25 @@ const API = {
     return cruises.filter(c => c.shipSlug === shipSlug && c.dateFrom >= now);
   },
 
+  // ===== LOCAL SHIP DETAILS =====
+  _localShipDetails: null,
+
+  async loadShipDetails() {
+    if (this._localShipDetails) return this._localShipDetails;
+    try {
+      const res = await fetch('assets/data/ships-detail.json');
+      const arr = await res.json();
+      this._localShipDetails = {};
+      arr.forEach(s => { this._localShipDetails[s.slug] = s; });
+    } catch { this._localShipDetails = {}; }
+    return this._localShipDetails;
+  },
+
+  async getShipDetail(slug) {
+    const details = await this.loadShipDetails();
+    return details[slug] || null;
+  },
+
   // ===== LIVE API (상세 페이지 전용) =====
 
   // 선박 상세 (시설/덱플랜/객실 = 라이브)
