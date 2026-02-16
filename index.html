@@ -356,8 +356,32 @@
 
     loadRecommended();
 
-    /* ── Inquiry Modal ── */
+    /* ── Inquiry Modal handled by shared script below ── */
+  <script>
+    function openInquiryWith(title, operator, ship, dateFrom, nights, price, ref, currency) {
+      document.getElementById('modalProductName').textContent = title;
+      document.getElementById('modalProductDetail').innerHTML =
+        `${operator} · ${ship}<br>출발: ${dateFrom} / ${nights}박${price ? (currency==='EUR'?' / €':' / $')+price+'~' : ''}`;
+      document.getElementById('f_product').value = title;
+      document.getElementById('f_cruiseline').value = operator;
+      document.getElementById('f_ship').value = ship;
+      document.getElementById('f_date').value = dateFrom;
+      document.getElementById('f_ports').value = '';
+      document.getElementById('f_price').value = price ? (currency==='EUR'?'€':'$')+price+'~' : '문의';
+      document.getElementById('f_ref').value = ref;
+      document.getElementById('inquiryModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
     function openInquiry() {
+      document.getElementById('modalProductName').textContent = '';
+      document.getElementById('modalProductDetail').innerHTML = '';
+      document.getElementById('f_product').value = '';
+      document.getElementById('f_cruiseline').value = '';
+      document.getElementById('f_ship').value = '';
+      document.getElementById('f_date').value = '';
+      document.getElementById('f_ports').value = '';
+      document.getElementById('f_price').value = '';
+      document.getElementById('f_ref').value = '';
       document.getElementById('inquiryModal').classList.add('open');
       document.body.style.overflow = 'hidden';
     }
@@ -370,70 +394,111 @@
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.textContent = '전송 중...';
-      const form = document.getElementById('inquiryForm');
-      const data = new FormData(form);
-      fetch('https://formsubmit.co/ajax/info@cruiselink.co.kr', {
-        method: 'POST', body: data
-      }).then(r => r.json()).then(() => {
-        document.getElementById('formStatus').innerHTML =
-          '<div style="background:#e8f5e9;padding:16px;border-radius:8px;color:#2e7d32;margin-bottom:16px">✅ 문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.</div>';
-        form.style.display = 'none';
-        btn.style.display = 'none';
+      const fd = {
+        _subject: `[크루즈링크] ${document.getElementById('f_product').value} - ${document.getElementById('f_name').value}님`,
+        _template: 'table',
+        '크루즈 상품': document.getElementById('f_product').value,
+        '선사': document.getElementById('f_cruiseline').value,
+        '선박': document.getElementById('f_ship').value,
+        '출발일': document.getElementById('f_date').value,
+        '참고가격': document.getElementById('f_price').value,
+        'Ref': document.getElementById('f_ref').value,
+        '고객 이름': document.getElementById('f_name').value,
+        '고객 이메일': document.getElementById('f_email').value,
+        '고객 연락처': document.getElementById('f_phone').value,
+        '인원': document.getElementById('f_pax').value,
+        '희망 객실': document.getElementById('f_cabin').value,
+        '요청사항': document.getElementById('f_message').value || '없음',
+      };
+      const data = new FormData();
+      Object.entries(fd).forEach(([k,v]) => data.append(k,v));
+      fetch('https://formsubmit.co/ajax/info@cruiselink.co.kr', { method:'POST', body:data })
+      .then(() => {
+        document.getElementById('formStatus').innerHTML = '<div style="background:#e8f5e9;padding:12px;border-radius:8px;color:#2e7d32;font-size:0.9rem">✅ 문의가 접수되었습니다.<br>입력하신 이메일로 견적서를 회신드리겠습니다.</div>';
+        document.getElementById('inquiryForm').style.display = 'none'; btn.style.display = 'none';
       }).catch(() => {
-        document.getElementById('formStatus').innerHTML =
-          '<div style="background:#e8f5e9;padding:16px;border-radius:8px;color:#2e7d32;margin-bottom:16px">✅ 문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.</div>';
-        form.style.display = 'none';
-        btn.style.display = 'none';
+        document.getElementById('formStatus').innerHTML = '<div style="background:#e8f5e9;padding:12px;border-radius:8px;color:#2e7d32;font-size:0.9rem">✅ 문의가 접수되었습니다.<br>입력하신 이메일로 견적서를 회신드리겠습니다.</div>';
+        document.getElementById('inquiryForm').style.display = 'none'; btn.style.display = 'none';
       });
     }
   </script>
-
-  <!-- Inquiry Modal -->
   <div class="modal-overlay" id="inquiryModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>🚢 크루즈 문의하기</h2>
+    <div class="modal" style="max-width:460px">
+      <div class="modal-header" style="padding:14px 20px">
+        <h2 style="font-size:1.05rem">🚢 크루즈 문의하기</h2>
         <button class="modal-close" onclick="closeInquiry()">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="padding:16px 20px">
+        <div class="modal-product-info" style="padding:10px 12px;margin-bottom:12px;font-size:0.88rem;background:#f5f5f5;border-radius:8px">
+          <strong id="modalProductName"></strong><br>
+          <span id="modalProductDetail" style="color:#666"></span>
+        </div>
         <div class="form-status" id="formStatus"></div>
         <form id="inquiryForm" onsubmit="submitInquiry(event)">
-          <input type="hidden" name="_subject" value="[크루즈링크] 새 문의가 접수되었습니다">
-          <input type="hidden" name="_template" value="table">
+          <input type="hidden" id="f_product" name="product_name">
+          <input type="hidden" id="f_cruiseline" name="cruise_line">
+          <input type="hidden" id="f_ship" name="ship">
+          <input type="hidden" id="f_date" name="departure_date">
+          <input type="hidden" id="f_ports" name="ports">
+          <input type="hidden" id="f_price" name="price">
+          <input type="hidden" id="f_ref" name="cruise_ref">
           <input type="text" name="_honey" style="display:none">
-          <div class="form-group">
-            <label>영문 이름 (여권 기재명) <span class="req">*</span></label>
-            <input type="text" id="f_name" name="customer_name" required placeholder="HONG GILDONG">
-          </div>
-          <div class="form-group">
-            <label>이메일 <span class="req">*</span></label>
-            <input type="email" id="f_email" name="customer_email" required placeholder="example@email.com">
-          </div>
-          <div class="form-group">
-            <label>연락처 <span class="req">*</span></label>
-            <input type="tel" id="f_phone" name="customer_phone" required placeholder="010-1234-5678">
-          </div>
-          <div class="form-group">
-            <label>관심 크루즈 / 요청사항 <span class="req">*</span></label>
-            <textarea id="f_message" name="message" rows="3" required placeholder="관심 있는 크루즈나 여행 일정을 알려주세요."></textarea>
-          </div>
-          <div class="privacy-section">
-            <div class="privacy-check">
-              <input type="checkbox" id="privacyAgree" required>
-              <label for="privacyAgree">개인정보 수집·이용에 동의합니다. (필수)</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="form-group" style="margin-bottom:8px">
+              <label style="font-size:0.8rem;margin-bottom:3px">이름 <span class="req">*</span></label>
+              <input type="text" id="f_name" name="customer_name" required placeholder="홍길동" style="padding:8px 10px;font-size:0.9rem">
             </div>
-            <button type="button" class="privacy-toggle" onclick="document.getElementById('privacyDetail').classList.toggle('open')">약관 보기 ▼</button>
+            <div class="form-group" style="margin-bottom:8px">
+              <label style="font-size:0.8rem;margin-bottom:3px">연락처 <span class="req">*</span></label>
+              <input type="tel" id="f_phone" name="customer_phone" required placeholder="010-1234-5678" style="padding:8px 10px;font-size:0.9rem">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:8px">
+            <label style="font-size:0.8rem;margin-bottom:3px">이메일 <span class="req">*</span></label>
+            <input type="email" id="f_email" name="customer_email" required placeholder="example@email.com" style="padding:8px 10px;font-size:0.9rem">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="form-group" style="margin-bottom:8px">
+              <label style="font-size:0.8rem;margin-bottom:3px">인원 <span class="req">*</span></label>
+              <select id="f_pax" name="pax" required style="padding:8px 10px;font-size:0.9rem">
+                <option value="">선택</option>
+                <option value="1">1명</option><option value="2">2명</option><option value="3">3명</option>
+                <option value="4">4명</option><option value="5">5명</option><option value="6~10">6~10명</option>
+                <option value="11+">11명 이상</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:8px">
+              <label style="font-size:0.8rem;margin-bottom:3px">객실 타입 <span class="req">*</span></label>
+              <select id="f_cabin" name="cabin_type" required style="padding:8px 10px;font-size:0.9rem">
+                <option value="">선택</option>
+                <option value="내측">내측</option>
+                <option value="오션뷰">오션뷰</option>
+                <option value="발코니">발코니</option>
+                <option value="스위트">스위트</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:8px">
+            <label style="font-size:0.8rem;margin-bottom:3px">요청사항</label>
+            <textarea id="f_message" name="message" rows="2" placeholder="기타 요청사항" style="padding:8px 10px;font-size:0.9rem"></textarea>
+          </div>
+          <div class="privacy-section" style="margin-top:8px;padding-top:8px">
+            <div class="privacy-check" style="margin-bottom:4px">
+              <input type="checkbox" id="privacyAgree" required style="width:16px;height:16px">
+              <label for="privacyAgree" style="font-size:0.8rem">개인정보 수집·이용에 동의합니다. (필수)</label>
+            </div>
+            <button type="button" class="privacy-toggle" style="font-size:0.78rem" onclick="document.getElementById('privacyDetail').classList.toggle('open')">약관 보기 ▼</button>
             <div class="privacy-detail" id="privacyDetail">
               <strong>수집항목:</strong> 이름, 이메일, 연락처<br>
               <strong>수집목적:</strong> 크루즈 상담 및 예약 안내<br>
-              <strong>보유기간:</strong> 상담 완료 후 1년<br><br>
-              위 개인정보 수집·이용에 동의하지 않을 수 있으며, 동의하지 않을 경우 문의 접수가 불가합니다.
+              <strong>보유기간:</strong> 상담 완료 후 1년
             </div>
           </div>
-          <button type="submit" class="btn btn-orange" id="submitBtn" style="width:100%;margin-top:16px;padding:14px;font-size:1.05rem">문의하기 전송</button>
+          <button type="submit" class="btn btn-orange" id="submitBtn" style="width:100%;margin-top:10px;padding:12px;font-size:1rem">문의하기 전송</button>
         </form>
       </div>
     </div>
   </div>
+
 </body>
 </html>
