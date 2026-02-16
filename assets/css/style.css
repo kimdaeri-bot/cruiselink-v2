@@ -102,16 +102,30 @@ img { max-width: 100%; height: auto; }
 }
 
 /* ===== DESTINATION CARDS ===== */
-.dest-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+.dest-slider-wrap { position: relative; display: flex; align-items: center; gap: 8px; }
+.dest-slider {
+  overflow: hidden; flex: 1; cursor: grab;
+}
+.dest-slider:active { cursor: grabbing; }
+.dest-track {
+  display: flex; gap: 16px; transition: transform 0.4s ease;
+  user-select: none; -webkit-user-select: none;
 }
 .dest-card {
   background: var(--white); border: 2px solid #cfd8dc; border-radius: var(--radius);
   padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s;
+  min-width: calc(25% - 12px); flex-shrink: 0; box-sizing: border-box;
 }
 .dest-card:hover { border-color: var(--navy); transform: translateY(-2px); box-shadow: var(--shadow); }
 .dest-card .emoji { font-size: 2.5rem; margin-bottom: 8px; display: block; }
 .dest-card .name { font-weight: 700; color: var(--gray-900); font-size: 0.95rem; }
+.dest-arrow {
+  width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--gray-300);
+  background: var(--white); font-size: 1.4rem; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; color: var(--navy); flex-shrink: 0;
+  transition: all 0.2s; box-shadow: var(--shadow);
+}
+.dest-arrow:hover { background: var(--navy); color: var(--white); border-color: var(--navy); }
 
 /* ===== PROMO SLIDER ===== */
 .promo-slider { position: relative; overflow: hidden; border-radius: 12px; }
@@ -429,7 +443,7 @@ img { max-width: 100%; height: auto; }
   .hero-sub { font-size: 1rem; }
   .filter-bar { flex-direction: column; padding: 20px; margin-top: -30px; }
   .filter-group { min-width: 100%; }
-  .dest-grid { grid-template-columns: repeat(2, 1fr); }
+  .dest-card { min-width: calc(50% - 8px); }
   .cruise-grid { grid-template-columns: 1fr; }
   .cruise-item { flex-direction: column; }
   .cruise-item-img { width: 100%; min-width: 100%; height: 200px; }
@@ -456,9 +470,9 @@ img { max-width: 100%; height: auto; }
 }
 
 @media (max-width: 480px) {
-  .dest-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .dest-card { padding: 16px 8px; }
+  .dest-card { min-width: calc(50% - 8px); padding: 16px 8px; }
   .dest-card .emoji { font-size: 2rem; }
+  .dest-arrow { width: 32px; height: 32px; font-size: 1.2rem; }
   /* hero-ctas removed */
   .cta-buttons { flex-direction: column; align-items: center; }
   .cta-buttons.cta-three { align-items: stretch; }
