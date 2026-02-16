@@ -499,7 +499,7 @@
 
       const form = document.createElement('form');
       form.method = 'POST';
-      form.action = 'https://formsubmit.co/ajax/info@londonshow.co.kr';
+      form.action = 'https://formsubmit.co/ajax/info@cruiselink.co.kr';
 
       const fd = {
         _subject: `[크루즈링크] ${document.getElementById('f_product').value} - ${document.getElementById('f_name').value}님`,
@@ -518,7 +518,7 @@
         '요청사항': document.getElementById('f_message').value || '없음',
       };
 
-      fetch('https://formsubmit.co/ajax/info@londonshow.co.kr', {
+      fetch('https://formsubmit.co/ajax/info@cruiselink.co.kr', {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
         body: JSON.stringify(fd)

@@ -33,7 +33,7 @@ const Components = {
             <h4>연락처</h4>
             <p>📞 <a href="tel:02-3788-9119">02-3788-9119</a></p>
             <p>💬 <a href="https://pf.kakao.com/_xgYbJG" target="_blank">카카오톡 상담</a></p>
-            <p>✉️ <a href="mailto:info@londonshow.co.kr">info@londonshow.co.kr</a></p>
+            <p>✉️ <a href="mailto:info@cruiselink.co.kr">info@cruiselink.co.kr</a></p>
           </div>
           <div class="footer-col">
             <h4>목적지</h4>

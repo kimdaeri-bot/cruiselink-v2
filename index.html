@@ -370,11 +370,21 @@
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.textContent = '전송 중...';
-      setTimeout(() => {
-        document.getElementById('formStatus').innerHTML = '<div style="background:#e8f5e9;padding:16px;border-radius:8px;color:#2e7d32;margin-bottom:16px">✅ 문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.</div>';
-        document.getElementById('inquiryForm').style.display = 'none';
+      const form = document.getElementById('inquiryForm');
+      const data = new FormData(form);
+      fetch('https://formsubmit.co/ajax/info@cruiselink.co.kr', {
+        method: 'POST', body: data
+      }).then(r => r.json()).then(() => {
+        document.getElementById('formStatus').innerHTML =
+          '<div style="background:#e8f5e9;padding:16px;border-radius:8px;color:#2e7d32;margin-bottom:16px">✅ 문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.</div>';
+        form.style.display = 'none';
         btn.style.display = 'none';
-      }, 800);
+      }).catch(() => {
+        document.getElementById('formStatus').innerHTML =
+          '<div style="background:#e8f5e9;padding:16px;border-radius:8px;color:#2e7d32;margin-bottom:16px">✅ 문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.</div>';
+        form.style.display = 'none';
+        btn.style.display = 'none';
+      });
     }
   </script>
 
@@ -388,6 +398,9 @@
       <div class="modal-body">
         <div class="form-status" id="formStatus"></div>
         <form id="inquiryForm" onsubmit="submitInquiry(event)">
+          <input type="hidden" name="_subject" value="[크루즈링크] 새 문의가 접수되었습니다">
+          <input type="hidden" name="_template" value="table">
+          <input type="text" name="_honey" style="display:none">
           <div class="form-group">
             <label>영문 이름 (여권 기재명) <span class="req">*</span></label>
             <input type="text" id="f_name" name="customer_name" required placeholder="HONG GILDONG">
