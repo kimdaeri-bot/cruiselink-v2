@@ -105,10 +105,9 @@
             ${(c.hashtags||[]).slice(0,6).map(t => `<span class="hero-tag">${t}</span>`).join('')}
           </div>
           <div class="price-big">${priceStr} <small>/1인 2인기준</small></div>
-          <div class="hero-ctas">
+          <div class="hero-ctas cta-two-center">
             <a href="https://pf.kakao.com/_xgYbJG" target="_blank" class="btn btn-orange">💬 카카오톡 상담</a>
-            <a href="tel:02-3788-9119" class="btn btn-white">📞 전화 상담</a>
-            <a href="tel:02-3788-9119" class="btn btn-outline">☎️ 02-3788-9119</a>
+            <button class="btn btn-white-solid" onclick="openInquiry()">📋 온라인 문의</button>
           </div>
         </div>
       </section>`;
@@ -398,9 +397,9 @@
             <span>🌏 ${countries}</span>
           </div>
           <div class="price-big">${priceStr} <small>/1인 2인기준</small></div>
-          <div class="hero-ctas">
+          <div class="hero-ctas cta-two-center">
             <a href="https://pf.kakao.com/_xgYbJG" target="_blank" class="btn btn-orange">💬 카카오톡 상담</a>
-            <a href="tel:02-3788-9119" class="btn btn-white">📞 전화 상담</a>
+            <button class="btn btn-white-solid" onclick="openInquiry()">📋 온라인 문의</button>
           </div>
         </div>
       </section>
