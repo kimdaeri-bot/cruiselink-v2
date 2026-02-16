@@ -466,13 +466,21 @@
     function openInquiry() {
       const c = window._cruiseData;
       if (c) {
-        document.getElementById('modalProductName').textContent = c.titleKo || c.title || '';
-        document.getElementById('modalProductDetail').textContent =
-          `출발: ${c.departureDate || ''} / ${c.nights || ''}박 / ${c.operator || ''}`;
-        document.getElementById('f_product').value = c.titleKo || c.title || '';
+        const title = c.title || c.titleKo || '';
+        const ship = c.shipTitleKo || Translations.shipName(c.shipTitle || '');
+        const op = Translations.operatorName(c.operator || '');
+        const price = c.priceBalcony || c.priceOutside || c.priceInside;
+        const route = c.portRouteKo || c.portRoute || '';
+        document.getElementById('modalProductName').textContent = title;
+        document.getElementById('modalProductDetail').innerHTML =
+          `${op} · ${ship}<br>출발: ${c.dateFrom || c.departureDate || ''} / ${c.nights || ''}박${price ? ' / $'+price+'~' : ''}`;
+        document.getElementById('f_product').value = title;
         document.getElementById('f_cruiseline').value = c.operator || '';
-        document.getElementById('f_ship').value = c.shipTitleKo || c.shipTitle || '';
-        document.getElementById('f_date').value = c.departureDate || '';
+        document.getElementById('f_ship').value = ship;
+        document.getElementById('f_date').value = c.dateFrom || c.departureDate || '';
+        document.getElementById('f_ports').value = route;
+        document.getElementById('f_price').value = price ? '$'+price+'~' : '문의';
+        document.getElementById('f_ref').value = c.ref || '';
       }
       document.getElementById('inquiryModal').classList.add('open');
       document.body.style.overflow = 'hidden';
@@ -488,10 +496,34 @@
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.textContent = '전송 중...';
-      // TODO: EmailJS 연동
+      // Collect all form data
+      const fd = {
+        product: document.getElementById('f_product').value,
+        cruiseline: document.getElementById('f_cruiseline').value,
+        ship: document.getElementById('f_ship').value,
+        date: document.getElementById('f_date').value,
+        ports: document.getElementById('f_ports').value,
+        price: document.getElementById('f_price').value,
+        ref: document.getElementById('f_ref').value,
+        name: document.getElementById('f_name').value,
+        email: document.getElementById('f_email').value,
+        phone: document.getElementById('f_phone').value,
+        pax: document.getElementById('f_pax').value,
+        cabin: document.getElementById('f_cabin').value,
+        message: document.getElementById('f_message').value,
+      };
+      // Send via mailto as fallback (EmailJS 연동 전)
+      const subject = encodeURIComponent(`[크루즈링크] 문의: ${fd.product}`);
+      const body = encodeURIComponent(
+        `=== 크루즈 정보 ===\n상품: ${fd.product}\n선사: ${fd.cruiseline}\n선박: ${fd.ship}\n출발일: ${fd.date}\n일정: ${fd.ports}\n가격: ${fd.price}\nRef: ${fd.ref}\n\n=== 고객 정보 ===\n이름: ${fd.name}\n이메일: ${fd.email}\n연락처: ${fd.phone}\n인원: ${fd.pax}\n객실: ${fd.cabin}\n요청사항: ${fd.message}`
+      );
+      // Open mailto in background
+      const mailLink = document.createElement('a');
+      mailLink.href = `mailto:info@londonshow.co.kr?subject=${subject}&body=${body}`;
+      mailLink.click();
       setTimeout(() => {
         document.getElementById('formStatus').innerHTML =
-          '<div style="background:#e8f5e9;padding:16px;border-radius:8px;color:#2e7d32;margin-bottom:16px">✅ 문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.</div>';
+          '<div style="background:#e8f5e9;padding:12px;border-radius:8px;color:#2e7d32;font-size:0.9rem">✅ 문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.</div>';
         document.getElementById('inquiryForm').style.display = 'none';
         btn.style.display = 'none';
       }, 800);
@@ -500,13 +532,13 @@
 
   <!-- Inquiry Modal -->
   <div class="modal-overlay" id="inquiryModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>🚢 크루즈 문의하기</h2>
+    <div class="modal" style="max-width:460px">
+      <div class="modal-header" style="padding:14px 20px">
+        <h2 style="font-size:1.05rem">🚢 크루즈 문의하기</h2>
         <button class="modal-close" onclick="closeInquiry()">&times;</button>
       </div>
-      <div class="modal-body">
-        <div class="modal-product-info">
+      <div class="modal-body" style="padding:16px 20px">
+        <div class="modal-product-info" style="padding:10px 12px;margin-bottom:12px;font-size:0.88rem">
           <strong id="modalProductName"></strong><br>
           <span id="modalProductDetail"></span>
         </div>
@@ -516,56 +548,61 @@
           <input type="hidden" id="f_cruiseline" name="cruise_line">
           <input type="hidden" id="f_ship" name="ship">
           <input type="hidden" id="f_date" name="departure_date">
-          <div class="form-group">
-            <label>영문 이름 (여권 기재명) <span class="req">*</span></label>
-            <input type="text" id="f_name" name="customer_name" required placeholder="HONG GILDONG">
-          </div>
-          <div class="form-group">
-            <label>이메일 <span class="req">*</span></label>
-            <input type="email" id="f_email" name="customer_email" required placeholder="example@email.com">
-          </div>
-          <div class="form-group">
-            <label>연락처 <span class="req">*</span></label>
-            <input type="tel" id="f_phone" name="customer_phone" required placeholder="010-1234-5678">
-          </div>
-          <div class="form-group">
-            <label>인원 <span class="req">*</span></label>
-            <select id="f_pax" name="pax" required>
-              <option value="">인원을 선택하세요</option>
-              <option value="1">1명</option><option value="2">2명</option><option value="3">3명</option>
-              <option value="4">4명</option><option value="5">5명</option><option value="6">6명</option>
-              <option value="7">7명</option><option value="8">8명</option><option value="9">9명</option>
-              <option value="10">10명</option><option value="11~15">11~15명</option><option value="16~20">16~20명</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>객실 타입 <span class="req">*</span></label>
-            <select id="f_cabin" name="cabin_type" required>
-              <option value="">객실 타입을 선택하세요</option>
-              <option value="내측">내측 (Inside)</option>
-              <option value="오션뷰">오션뷰 (Ocean View)</option>
-              <option value="발코니">발코니 (Balcony)</option>
-              <option value="스위트">스위트 (Suite)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>요청사항</label>
-            <textarea id="f_message" name="message" rows="3" placeholder="다른 객실타입이나 기타 특별요청을 적어주세요."></textarea>
-          </div>
-          <div class="privacy-section">
-            <div class="privacy-check">
-              <input type="checkbox" id="privacyAgree" required>
-              <label for="privacyAgree">개인정보 수집·이용에 동의합니다. (필수)</label>
+          <input type="hidden" id="f_ports" name="ports">
+          <input type="hidden" id="f_price" name="price">
+          <input type="hidden" id="f_ref" name="cruise_ref">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="form-group" style="margin-bottom:8px">
+              <label style="font-size:0.8rem;margin-bottom:3px">이름 <span class="req">*</span></label>
+              <input type="text" id="f_name" name="customer_name" required placeholder="홍길동" style="padding:8px 10px;font-size:0.9rem">
             </div>
-            <button type="button" class="privacy-toggle" onclick="document.getElementById('privacyDetail').classList.toggle('open')">약관 보기 ▼</button>
+            <div class="form-group" style="margin-bottom:8px">
+              <label style="font-size:0.8rem;margin-bottom:3px">연락처 <span class="req">*</span></label>
+              <input type="tel" id="f_phone" name="customer_phone" required placeholder="010-1234-5678" style="padding:8px 10px;font-size:0.9rem">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:8px">
+            <label style="font-size:0.8rem;margin-bottom:3px">이메일 <span class="req">*</span></label>
+            <input type="email" id="f_email" name="customer_email" required placeholder="example@email.com" style="padding:8px 10px;font-size:0.9rem">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="form-group" style="margin-bottom:8px">
+              <label style="font-size:0.8rem;margin-bottom:3px">인원 <span class="req">*</span></label>
+              <select id="f_pax" name="pax" required style="padding:8px 10px;font-size:0.9rem">
+                <option value="">선택</option>
+                <option value="1">1명</option><option value="2">2명</option><option value="3">3명</option>
+                <option value="4">4명</option><option value="5">5명</option><option value="6~10">6~10명</option>
+                <option value="11+">11명 이상</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:8px">
+              <label style="font-size:0.8rem;margin-bottom:3px">객실 타입 <span class="req">*</span></label>
+              <select id="f_cabin" name="cabin_type" required style="padding:8px 10px;font-size:0.9rem">
+                <option value="">선택</option>
+                <option value="내측">내측</option>
+                <option value="오션뷰">오션뷰</option>
+                <option value="발코니">발코니</option>
+                <option value="스위트">스위트</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:8px">
+            <label style="font-size:0.8rem;margin-bottom:3px">요청사항</label>
+            <textarea id="f_message" name="message" rows="2" placeholder="기타 요청사항" style="padding:8px 10px;font-size:0.9rem"></textarea>
+          </div>
+          <div class="privacy-section" style="margin-top:8px;padding-top:8px">
+            <div class="privacy-check" style="margin-bottom:4px">
+              <input type="checkbox" id="privacyAgree" required style="width:16px;height:16px">
+              <label for="privacyAgree" style="font-size:0.8rem">개인정보 수집·이용에 동의합니다. (필수)</label>
+            </div>
+            <button type="button" class="privacy-toggle" style="font-size:0.78rem" onclick="document.getElementById('privacyDetail').classList.toggle('open')">약관 보기 ▼</button>
             <div class="privacy-detail" id="privacyDetail">
               <strong>수집항목:</strong> 이름, 이메일, 연락처<br>
               <strong>수집목적:</strong> 크루즈 상담 및 예약 안내<br>
-              <strong>보유기간:</strong> 상담 완료 후 1년<br><br>
-              위 개인정보 수집·이용에 동의하지 않을 수 있으며, 동의하지 않을 경우 문의 접수가 불가합니다.
+              <strong>보유기간:</strong> 상담 완료 후 1년
             </div>
           </div>
-          <button type="submit" class="btn btn-orange" id="submitBtn" style="width:100%;margin-top:16px;padding:14px;font-size:1.05rem">문의하기 전송</button>
+          <button type="submit" class="btn btn-orange" id="submitBtn" style="width:100%;margin-top:10px;padding:12px;font-size:1rem">문의하기 전송</button>
         </form>
       </div>
     </div>
