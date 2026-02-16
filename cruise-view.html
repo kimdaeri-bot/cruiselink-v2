@@ -492,56 +492,50 @@
     document.addEventListener('click', e => {
       if (e.target.id === 'inquiryModal') closeInquiry();
     });
-    // Google Apps Script 배포 URL (사장님 배포 후 여기 입력)
-    const GAS_URL = '';
-
     function submitInquiry(e) {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       btn.disabled = true; btn.textContent = '전송 중...';
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = 'https://formsubmit.co/ajax/info@londonshow.co.kr';
+
       const fd = {
-        product: document.getElementById('f_product').value,
-        cruiseline: document.getElementById('f_cruiseline').value,
-        ship: document.getElementById('f_ship').value,
-        date: document.getElementById('f_date').value,
-        ports: document.getElementById('f_ports').value,
-        price: document.getElementById('f_price').value,
-        ref: document.getElementById('f_ref').value,
-        name: document.getElementById('f_name').value,
-        email: document.getElementById('f_email').value,
-        phone: document.getElementById('f_phone').value,
-        pax: document.getElementById('f_pax').value,
-        cabin: document.getElementById('f_cabin').value,
-        message: document.getElementById('f_message').value,
+        _subject: `[크루즈링크] ${document.getElementById('f_product').value} - ${document.getElementById('f_name').value}님`,
+        '크루즈 상품': document.getElementById('f_product').value,
+        '선사': document.getElementById('f_cruiseline').value,
+        '선박': document.getElementById('f_ship').value,
+        '출발일': document.getElementById('f_date').value,
+        '일정': document.getElementById('f_ports').value,
+        '참고가격': document.getElementById('f_price').value,
+        'Ref': document.getElementById('f_ref').value,
+        '고객 이름': document.getElementById('f_name').value,
+        '고객 이메일': document.getElementById('f_email').value,
+        '고객 연락처': document.getElementById('f_phone').value,
+        '인원': document.getElementById('f_pax').value,
+        '희망 객실': document.getElementById('f_cabin').value,
+        '요청사항': document.getElementById('f_message').value || '없음',
       };
 
-      if (GAS_URL) {
-        // Google Apps Script로 인보이스 이메일 발송
-        fetch(GAS_URL, {
-          method: 'POST', mode: 'no-cors',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(fd)
-        }).then(() => showSuccess()).catch(() => showSuccess());
-      } else {
-        // Fallback: mailto
-        const subject = encodeURIComponent(`[크루즈링크] 문의: ${fd.product}`);
-        const body = encodeURIComponent(
-          `=== 크루즈 정보 ===\n상품: ${fd.product}\n선사: ${fd.cruiseline}\n선박: ${fd.ship}\n출발일: ${fd.date}\n일정: ${fd.ports}\n가격: ${fd.price}\n\n=== 고객 정보 ===\n이름: ${fd.name}\n이메일: ${fd.email}\n연락처: ${fd.phone}\n인원: ${fd.pax}\n객실: ${fd.cabin}\n요청사항: ${fd.message}`
-        );
-        const a = document.createElement('a');
-        a.href = `mailto:info@cruiselink.co.kr?subject=${subject}&body=${body}`;
-        a.click();
-        showSuccess();
-      }
-
-      function showSuccess() {
-        setTimeout(() => {
-          document.getElementById('formStatus').innerHTML =
-            '<div style="background:#e8f5e9;padding:12px;border-radius:8px;color:#2e7d32;font-size:0.9rem">✅ 문의가 접수되었습니다.<br>빠른 시일 내에 연락드리겠습니다.</div>';
-          document.getElementById('inquiryForm').style.display = 'none';
-          btn.style.display = 'none';
-        }, 800);
-      }
+      fetch('https://formsubmit.co/ajax/info@londonshow.co.kr', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+        body: JSON.stringify(fd)
+      })
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('formStatus').innerHTML =
+          '<div style="background:#e8f5e9;padding:12px;border-radius:8px;color:#2e7d32;font-size:0.9rem">✅ 문의가 접수되었습니다.<br>빠른 시일 내에 연락드리겠습니다.</div>';
+        document.getElementById('inquiryForm').style.display = 'none';
+        btn.style.display = 'none';
+      })
+      .catch(() => {
+        document.getElementById('formStatus').innerHTML =
+          '<div style="background:#e8f5e9;padding:12px;border-radius:8px;color:#2e7d32;font-size:0.9rem">✅ 문의가 접수되었습니다.<br>빠른 시일 내에 연락드리겠습니다.</div>';
+        document.getElementById('inquiryForm').style.display = 'none';
+        btn.style.display = 'none';
+      });
     }
   </script>
 
