@@ -41,12 +41,21 @@ img { max-width: 100%; height: auto; }
 
 /* ===== HERO ===== */
 .hero {
-  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 50%, var(--navy-light) 100%);
-  color: var(--white); padding: 80px 0 100px; text-align: center; position: relative;
+  background: url('https://images.unsplash.com/photo-1548574505-5e239809ee19?w=1600&q=80') center/cover no-repeat;
+  color: var(--white); padding: 100px 0 120px; text-align: center; position: relative; overflow: hidden;
 }
-.hero h1 { font-size: 2.5rem; font-weight: 900; margin-bottom: 12px; }
-.hero p { font-size: 1.1rem; opacity: 0.9; margin-bottom: 32px; }
-.hero-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(13,21,75,0.82) 0%, rgba(26,35,126,0.7) 50%, rgba(40,53,147,0.6) 100%);
+}
+.hero-content { position: relative; z-index: 1; }
+.hero-badge {
+  display: inline-block; background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+  padding: 8px 20px; border-radius: 24px; font-size: 0.95rem; font-weight: 600;
+  margin-bottom: 20px; letter-spacing: 0.5px; border: 1px solid rgba(255,255,255,0.2);
+}
+.hero h1 { font-size: 2.6rem; font-weight: 900; margin-bottom: 16px; line-height: 1.35; text-shadow: 0 2px 20px rgba(0,0,0,0.3); }
+.hero-sub { font-size: 1.15rem; opacity: 0.9; margin-bottom: 0; max-width: 540px; margin-left: auto; margin-right: auto; line-height: 1.6; }
 
 /* ===== BUTTONS ===== */
 .btn {
@@ -409,8 +418,10 @@ img { max-width: 100%; height: auto; }
 
 /* ===== MOBILE ===== */
 @media (max-width: 768px) {
-  .hero h1 { font-size: 1.6rem; }
-  .hero { padding: 48px 0 72px; }
+  .hero h1 { font-size: 1.5rem; }
+  .hero { padding: 56px 0 80px; }
+  .hero-badge { font-size: 0.85rem; padding: 6px 16px; }
+  .hero-sub { font-size: 1rem; }
   .filter-bar { flex-direction: column; padding: 20px; margin-top: -30px; }
   .filter-group { min-width: 100%; }
   .dest-grid { grid-template-columns: repeat(2, 1fr); }
@@ -443,7 +454,7 @@ img { max-width: 100%; height: auto; }
   .dest-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .dest-card { padding: 16px 8px; }
   .dest-card .emoji { font-size: 2rem; }
-  .hero-ctas { flex-direction: column; align-items: center; }
+  /* hero-ctas removed */
   .cta-buttons { flex-direction: column; align-items: center; }
   .cta-buttons.cta-two { flex-direction: row; }
   .cta-buttons.cta-two .btn { flex: 1; min-width: 0; text-align: center; }
