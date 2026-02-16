@@ -194,9 +194,11 @@ img { max-width: 100%; height: auto; }
 .cta-section h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 12px; }
 .cta-section p { opacity: 0.9; margin-bottom: 32px; }
 .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.cta-buttons.cta-two { max-width: 500px; margin: 0 auto; }
-.cta-buttons.cta-two .btn { flex: 1; text-align: center; padding: 14px 24px; font-size: 1.05rem; }
+.cta-buttons.cta-two { max-width: 420px; margin: 0 auto; justify-content: center; }
+.cta-buttons.cta-two .btn { flex: 1; text-align: center; padding: 16px 24px; font-size: 1.05rem; font-weight: 700; border-radius: 12px; }
 .cta-buttons.cta-two button.btn { cursor: pointer; }
+.btn-white-solid { background: var(--white); color: var(--navy); border: none; }
+.btn-white-solid:hover { background: var(--gray-100); transform: translateY(-1px); }
 
 /* ===== FOOTER ===== */
 .footer {
