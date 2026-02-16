@@ -140,12 +140,18 @@
         </div>
       </section>`;
 
+      // === SHIP INFO ===
+      html += renderShipSection(c, ship, detail);
+
+      // === PRICING PLACEHOLDER ===
+      html += `<section class="section" id="pricing-section"></section>`;
+
       // === INCLUDE/EXCLUDE ===
       html += `
       <section class="section" style="background:var(--gray-50)">
         <div class="container">
           <h2 class="section-title">📋 포함 / 불포함 사항</h2>
-          <div class="checklist-grid" style="margin-top:24px">
+          <div class="checklist-grid" style="margin-top:24px;max-width:700px;margin-left:auto;margin-right:auto">
             <div>
               <h3 style="color:var(--navy);margin-bottom:16px">✅ 포함 사항</h3>
               <ul class="checklist included">
@@ -174,12 +180,6 @@
           </div>
         </div>
       </section>`;
-
-      // === SHIP INFO ===
-      html += renderShipSection(c, ship, detail);
-
-      // === PRICING PLACEHOLDER ===
-      html += `<section class="section" id="pricing-section"></section>`;
 
       // === CTA ===
       html += `
