@@ -137,15 +137,6 @@
     </div>
   </section>
 
-  <!-- SEARCH RESULTS (hidden by default) -->
-  <section class="section" id="searchResults" style="display:none; background: var(--gray-50);">
-    <div class="container">
-      <h2 class="section-title">검색 결과</h2>
-      <p class="section-subtitle" id="searchCount"></p>
-      <div id="searchList" class="cruise-list"></div>
-    </div>
-  </section>
-
   <div id="ctaSection"></div>
   <div id="footer"></div>
 
@@ -252,29 +243,19 @@
     }
 
     // Search from LOCAL JSON
-    async function doSearch() {
+    function doSearch() {
       const dest = document.getElementById('filterDest').value;
       const operators = getMultiValues(document.getElementById('msOperator'));
       const ports = getMultiValues(document.getElementById('msPort'));
       const month = document.getElementById('filterMonth').value;
       const dur = document.getElementById('filterDuration').value;
-
-      const resultsSection = document.getElementById('searchResults');
-      const searchList = document.getElementById('searchList');
-      const searchCount = document.getElementById('searchCount');
-      resultsSection.style.display = 'block';
-      searchList.innerHTML = Components.loading();
-
-      try {
-        const results = await API.filterCruises({ dest, operators, ports, month, duration: dur, limit: 100 });
-        searchCount.textContent = `${results.length}개의 크루즈를 찾았습니다`;
-        searchList.innerHTML = results.length
-          ? results.map(c => Components.localCruiseItem(c)).join('')
-          : '<div class="empty-state"><span class="emoji">🔍</span><p>조건에 맞는 크루즈가 없습니다</p></div>';
-        resultsSection.scrollIntoView({ behavior: 'smooth' });
-      } catch (e) {
-        searchList.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>검색 중 오류가 발생했습니다</p></div>';
-      }
+      const params = new URLSearchParams();
+      if (dest) params.set('dest', dest);
+      if (operators.length) params.set('operators', operators.join(','));
+      if (ports.length) params.set('ports', ports.join(','));
+      if (month) params.set('month', month);
+      if (dur) params.set('duration', dur);
+      location.href = `search.html?${params.toString()}`;
     }
 
     // === Destination slider ===

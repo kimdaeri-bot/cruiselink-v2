@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>검색 결과 - 크루즈링크</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚢</text></svg>">
+  <style>
+    .search-hero { background: var(--navy); color: #fff; padding: 32px 0; text-align: center; }
+    .search-hero h1 { font-size: 1.6rem; font-weight: 900; margin-bottom: 8px; }
+    .search-hero p { opacity: 0.8; font-size: 0.95rem; }
+    .search-tags { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+    .search-tag { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 20px; font-size: 0.85rem; }
+    .search-loading { text-align: center; padding: 80px 20px; }
+    .search-loading .loading-spinner { width: 48px; height: 48px; border-width: 4px; margin: 0 auto 16px; }
+    .search-progress { width: 280px; height: 4px; background: var(--gray-200); border-radius: 2px; margin: 20px auto 0; overflow: hidden; }
+    .search-progress-bar { height: 100%; background: var(--orange); border-radius: 2px; width: 0%; transition: width 0.3s ease; }
+    .search-status { font-size: 0.9rem; color: var(--gray-500); margin-top: 12px; }
+    .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .result-count { font-size: 1.1rem; font-weight: 700; color: var(--navy); }
+    .result-count span { color: var(--orange); }
+  </style>
+</head>
+<body>
+  <div id="header"></div>
+
+  <div class="search-hero">
+    <div class="container">
+      <h1>🔍 크루즈 검색 결과</h1>
+      <p id="searchSummary">검색 조건에 맞는 크루즈를 찾고 있습니다...</p>
+      <div class="search-tags" id="searchTags"></div>
+    </div>
+  </div>
+
+  <section class="section" style="background: var(--gray-50); min-height: 400px;">
+    <div class="container">
+      <!-- Loading state -->
+      <div id="loadingState" class="search-loading">
+        <div class="loading-spinner"></div>
+        <p style="font-size:1.1rem; font-weight:700; color:var(--navy);">실시간 크루즈 검색 중...</p>
+        <div class="search-progress"><div class="search-progress-bar" id="progressBar"></div></div>
+        <p class="search-status" id="statusText">데이터를 불러오고 있습니다</p>
+      </div>
+      <!-- Results -->
+      <div id="resultArea" style="display:none;">
+        <div class="result-header">
+          <div class="result-count" id="resultCount"></div>
+        </div>
+        <div id="resultList" class="cruise-list"></div>
+        <div id="pagination" class="pagination"></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="ctaSection"></div>
+  <div id="footer"></div>
+
+  <script src="assets/data/translations.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/components.js"></script>
+  <script>
+    document.getElementById('header').innerHTML = Components.header();
+    document.getElementById('footer').innerHTML = Components.footer();
+    document.getElementById('ctaSection').innerHTML = Components.ctaSection();
+
+    const params = new URLSearchParams(location.search);
+    const dest = params.get('dest') || '';
+    const operators = params.get('operators') ? params.get('operators').split(',') : [];
+    const ports = params.get('ports') ? params.get('ports').split(',') : [];
+    const month = params.get('month') || '';
+    const duration = params.get('duration') || '';
+
+    // Show search tags
+    const tagsEl = document.getElementById('searchTags');
+    const destNames = {'korea':'한국/일본','mediterranean':'지중해','alaska':'알래스카','caribbean':'카리브해','northern-europe':'북유럽','asia':'아시아/중동','south-america':'남미','oceania':'오세아니아','hawaii':'하와이'};
+    const durNames = {'short':'1~5박','medium':'6~10박','long':'11박 이상'};
+    if (dest) tagsEl.innerHTML += `<span class="search-tag">📍 ${destNames[dest]||dest}</span>`;
+    ports.forEach(p => tagsEl.innerHTML += `<span class="search-tag">🚢 ${p}</span>`);
+    operators.forEach(o => tagsEl.innerHTML += `<span class="search-tag">⚓ ${Translations.operatorName(o==='MSC'?'MSC Cruises':'Norwegian Cruise Line')}</span>`);
+    if (month) tagsEl.innerHTML += `<span class="search-tag">📅 ${month.replace('-','년 ')}월</span>`;
+    if (duration) tagsEl.innerHTML += `<span class="search-tag">⏱️ ${durNames[duration]||duration}</span>`;
+
+    // Animated loading
+    const bar = document.getElementById('progressBar');
+    const statusText = document.getElementById('statusText');
+    const steps = [
+      [20, '6,000+ 크루즈 데이터 로딩 중...'],
+      [50, '조건에 맞는 크루즈 필터링 중...'],
+      [80, '가격 및 일정 정보 확인 중...'],
+      [95, '결과 정렬 중...'],
+    ];
+
+    let allResults = [];
+    const PER_PAGE = 20;
+    let currentPage = 1;
+
+    async function doSearch() {
+      // Animate progress
+      for (const [pct, text] of steps) {
+        bar.style.width = pct + '%';
+        statusText.textContent = text;
+        await new Promise(r => setTimeout(r, 400));
+      }
+
+      const results = await API.filterCruises({ dest, operators, ports, month, duration, limit: 9999 });
+      allResults = results;
+
+      bar.style.width = '100%';
+      statusText.textContent = '완료!';
+      await new Promise(r => setTimeout(r, 300));
+
+      // Show results
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('resultArea').style.display = 'block';
+      document.getElementById('resultCount').innerHTML = `총 <span>${results.length}</span>개의 크루즈를 찾았습니다`;
+      document.getElementById('searchSummary').textContent = `${results.length}개의 크루즈가 검색되었습니다`;
+      document.title = `검색 결과 (${results.length}건) - 크루즈링크`;
+
+      renderPage();
+    }
+
+    function renderPage() {
+      const container = document.getElementById('resultList');
+      const pagination = document.getElementById('pagination');
+
+      if (allResults.length === 0) {
+        container.innerHTML = '<div class="empty-state"><span class="emoji">🔍</span><p>조건에 맞는 크루즈가 없습니다.<br>검색 조건을 변경해 보세요.</p></div>';
+        pagination.innerHTML = '';
+        return;
+      }
+
+      const totalPages = Math.ceil(allResults.length / PER_PAGE);
+      const start = (currentPage - 1) * PER_PAGE;
+      const pageItems = allResults.slice(start, start + PER_PAGE);
+
+      container.innerHTML = pageItems.map(c => Components.localCruiseItem(c)).join('');
+
+      if (totalPages > 1) {
+        let html = '';
+        const maxVisible = 10;
+        let startP = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let endP = startP + maxVisible - 1;
+        if (endP > totalPages) { endP = totalPages; startP = Math.max(1, endP - maxVisible + 1); }
+        if (startP > 1) html += `<button class="page-btn" onclick="goPage(1)">1</button><span class="page-ellipsis">…</span>`;
+        for (let i = startP; i <= endP; i++) {
+          html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+        }
+        if (endP < totalPages) html += `<span class="page-ellipsis">…</span><button class="page-btn" onclick="goPage(${totalPages})">${totalPages}</button>`;
+        pagination.innerHTML = html;
+      } else {
+        pagination.innerHTML = '';
+      }
+    }
+
+    function goPage(p) {
+      currentPage = p;
+      renderPage();
+      window.scrollTo({ top: 200, behavior: 'smooth' });
+    }
+
+    doSearch();
+  </script>
+</body>
+</html>
