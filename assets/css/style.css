@@ -367,6 +367,7 @@ img { max-width: 100%; height: auto; }
   display: flex; align-items: center; justify-content: center; font-family: inherit;
 }
 .page-btn.active, .page-btn:hover { background: var(--navy); color: var(--white); border-color: var(--navy); }
+.page-ellipsis { display:flex; align-items:center; font-weight:700; color:var(--text-secondary); padding:0 4px; }
 
 /* ===== MAIN SHIP IMAGE ===== */
 .main-ship-image { margin: 32px 0; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-lg); }
