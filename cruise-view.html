@@ -53,6 +53,7 @@
       // Render immediately with local data
       if (localCruise && localShip) {
         renderPage(localCruise, localShip, shipDetail, null);
+        initAllSliders();
       }
 
       // 3) Fetch live itinerary from API
@@ -202,7 +203,7 @@
       <section class="section" style="background:var(--gray-50)">
         <div class="container">
           <h2 class="section-title">🚢 ${c.shipTitleKo || c.shipTitle} 소개</h2>
-          ${detail?.teaserEn ? `<p class="section-subtitle" style="max-width:800px;margin:0 auto 24px;text-align:center">${detail.teaserEn}</p>` : ''}
+          ${(() => { const teaser = Translations.shipTeaser(c.shipTitle, c.shipTitleKo, c.operator, ship.shipClass, ship.capacity, ship.launchYear); return teaser ? `<p class="section-subtitle" style="max-width:800px;margin:0 auto 24px;text-align:center">${teaser}</p>` : ''; })()}
 
           <div class="spec-grid">`;
 
@@ -239,29 +240,27 @@
           html += `</div>`;
 
           tabs.forEach((t, i) => {
+            const sliderId = 'slider-' + t.id;
+            const items = t.id === 'decks' ? t.items : t.items.slice(0, 12);
             html += `<div class="tab-content ${i===0?'active':''}" id="ship-panel-${t.id}">`;
-            if (t.id === 'decks') {
-              html += `<div class="deck-scroll-wrap">`;
-              t.items.forEach(d => {
-                html += `<div class="deck-card-v2">${d.image ? `<img src="${d.image}" alt="${d.name}" loading="lazy">` : ''}<div class="deck-name-v2">${Translations.facilityName(d.name) !== d.name ? Translations.facilityName(d.name) : d.name}</div></div>`;
-              });
-              html += `</div>`;
-            } else {
-              t.items.slice(0, 12).forEach(item => {
-                const tr = Translations.facilityKo[item.name];
-                const name = tr ? tr.name : item.name;
-                const desc = tr ? tr.desc : (item.descEn || '').slice(0, 150);
-                html += `
-                <div class="facility-row">
-                  ${item.image ? `<img src="${item.image}" alt="${name}" loading="lazy">` : ''}
-                  <div class="facility-row-body">
-                    <div class="facility-row-name">${name}</div>
-                    ${desc ? `<div class="facility-row-desc">${desc}</div>` : ''}
-                  </div>
-                </div>`;
-              });
-            }
+            html += `<div class="facility-slider" id="${sliderId}">`;
+            html += `<div class="facility-slides">`;
+            items.forEach(item => {
+              const tr = Translations.facilityKo[item.name];
+              const name = tr ? tr.name : item.name;
+              const desc = tr ? tr.desc : null;
+              html += `<div class="facility-slide">`;
+              html += item.image ? `<img src="${item.image}" alt="${name}" loading="lazy">` : '';
+              html += `<div class="facility-slide-body"><div class="facility-slide-name">${name}</div>`;
+              if (desc) html += `<div class="facility-slide-desc">${desc}</div>`;
+              html += `</div></div>`;
+            });
             html += `</div>`;
+            if (items.length > 1) {
+              html += `<button class="slider-btn slider-prev">◀</button><button class="slider-btn slider-next">▶</button>`;
+              html += `<div class="slider-dots">${items.map((_, idx) => `<button class="slider-dot${idx===0?' active':''}" data-idx="${idx}"></button>`).join('')}</div>`;
+            }
+            html += `</div></div>`;
           });
           html += `</div>`;
         }
@@ -313,9 +312,8 @@
           const timeStr = arrTime && depTime ? `${arrTime} 입항 ~ ${depTime} 출항` : depTime ? `${depTime} 출항` : arrTime ? `${arrTime} 입항` : '';
           const portImages = loc.widgety_data?.images || loc.operator_data?.images || [];
           const mainImg = portImages[0]?.href;
-          const descEn = stripHtml(loc.widgety_data?.description || '');
           const descKo = Translations.portDesc(loc.name);
-          const desc = descKo || descEn;
+          const desc = descKo || `아름다운 기항지 ${portName}에서 특별한 시간을 보내세요.`;
 
           html += `
           <div class="day-card">
@@ -327,7 +325,6 @@
             ${mainImg ? `<div class="day-card-img-wrap"><img src="${mainImg}" alt="${portName}" class="day-card-main-img" loading="lazy"></div>` : ''}
             <div class="day-card-body">
               ${desc ? `<p class="port-desc">${desc}</p>` : ''}
-              ${portImages.length > 1 ? `<div class="day-card-images">${portImages.slice(1, 4).map(img => `<img src="${img.href}" alt="${img.name || portName}" loading="lazy">`).join('')}</div>` : ''}
             </div>
           </div>`;
         }
@@ -431,6 +428,28 @@
       content.innerHTML = html;
       renderItinerary(holiday);
       renderPricing(holiday, shipDetail);
+    }
+
+    function initSlider(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const slides = container.querySelector('.facility-slides');
+      const dots = container.querySelectorAll('.slider-dot');
+      const total = dots.length;
+      if (total === 0) return;
+      let current = 0;
+      function goTo(i) {
+        current = (i + total) % total;
+        slides.style.transform = `translateX(-${current * 100}%)`;
+        dots.forEach((d, idx) => d.classList.toggle('active', idx === current));
+      }
+      container.querySelector('.slider-prev')?.addEventListener('click', () => goTo(current - 1));
+      container.querySelector('.slider-next')?.addEventListener('click', () => goTo(current + 1));
+      dots.forEach((d, i) => d.addEventListener('click', () => goTo(i)));
+    }
+
+    function initAllSliders() {
+      document.querySelectorAll('.facility-slider').forEach(el => initSlider(el.id));
     }
 
     function switchShipTab(el, panelId) {

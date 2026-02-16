@@ -387,6 +387,22 @@ img { max-width: 100%; height: auto; }
 .deck-card-v2 img { width:100%; height:170px; object-fit:contain; background:var(--gray-50); }
 .deck-name-v2 { padding:10px; font-size:0.85rem; text-align:center; color:var(--navy); font-weight:600; }
 
+/* ===== FACILITY SLIDER ===== */
+.facility-slider { position:relative; overflow:hidden; border-radius:12px; border:2px solid var(--gray-300); background:var(--white); }
+.facility-slides { display:flex; transition:transform 0.3s ease; }
+.facility-slide { min-width:100%; }
+.facility-slide img { width:100%; height:250px; object-fit:cover; }
+.facility-slide-body { padding:16px 20px; }
+.facility-slide-name { font-size:16px; font-weight:700; color:var(--navy); }
+.facility-slide-desc { font-size:14px; color:var(--gray-700); margin-top:8px; line-height:1.6; }
+.slider-btn { position:absolute; top:125px; transform:translateY(-50%); background:rgba(0,0,0,0.4); color:#fff; border:none; width:40px; height:40px; border-radius:50%; font-size:18px; cursor:pointer; z-index:5; }
+.slider-btn:hover { background:rgba(0,0,0,0.6); }
+.slider-prev { left:10px; }
+.slider-next { right:10px; }
+.slider-dots { display:flex; justify-content:center; gap:6px; padding:12px; }
+.slider-dot { width:8px; height:8px; border-radius:50%; background:var(--gray-300); border:none; cursor:pointer; padding:0; }
+.slider-dot.active { background:var(--navy); }
+
 /* ===== MOBILE ===== */
 @media (max-width: 768px) {
   .hero h1 { font-size: 1.6rem; }

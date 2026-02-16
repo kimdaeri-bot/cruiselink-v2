@@ -252,6 +252,30 @@ const Translations = {
     'Guppies': {name:'구피즈', desc:'영유아 놀이 프로그램.'},
   },
 
+  // 선박 한글 소개 (teaser)
+  shipTeaserKo: {
+    'MSC Bellissima': '바다 위의 아름다움 — MSC 벨리시마는 자매선 MSC 메라빌리아에 필적하는 놀라운 시설을 갖추고 있습니다. 혁신적인 MSC for Me 기술로 승객, 승무원, 그리고 선박이 하나로 연결됩니다.',
+    'Norwegian Bliss': '노르웨이전 크루즈 라인 최대 규모의 선박 중 하나인 노르웨이전 블리스는 장엄한 자연을 위해 특별히 설계되었습니다. 바닥부터 천장까지 이어지는 전망 라운지에서 180도 파노라마 오션뷰를 즐기세요.',
+    'Norwegian Encore': '노르웨이전 앙코르는 브레이크어웨이 플러스 클래스의 최신 선박으로, 레이저 태그, 가상현실 게임, 카트 레이싱 등 최첨단 엔터테인먼트와 고급 다이닝을 갖추고 있습니다.',
+    'Norwegian Escape': "노르웨이전 이스케이프는 '바다 위의 놀이공원'이라 불리며, 워터파크, 로프 코스, 제트스키 시뮬레이터 등 모험 가득한 시설을 자랑합니다.",
+    'Norwegian Epic': '노르웨이전 에픽은 자유로운 크루즈 여행의 대명사입니다. 20개 이상의 다이닝 옵션, 아쿠아파크, 빙벽 등반, 그리고 브로드웨이급 공연까지 갖추고 있습니다.',
+    'MSC Grandiosa': "MSC 그란디오사는 MSC 크루즈의 메라빌리아 플러스 클래스 선박으로, 93미터 길이의 LED 돔 산책로 '갤러리아 그란디오사'가 눈길을 끕니다.",
+    'MSC World Europa': 'MSC 월드 유로파는 MSC 크루즈 최초의 LNG 구동 선박이자 월드 클래스 시리즈의 첫 번째 선박입니다. 유럽 최대의 실내 놀이공간과 혁신적인 시설을 자랑합니다.',
+    'MSC Seaside': "MSC 씨사이드는 '바다를 따르는 선박'이라는 콘셉트로 설계되어, 해변 콘도를 연상시키는 독특한 외관과 바다와 가까운 산책로가 특징입니다.",
+    'MSC Meraviglia': "MSC 메라빌리아는 실내 산책로 '갤러리아 메라빌리아'의 LED 천장이 지중해 하늘을 재현하며, 시르크 드 솔레이유와 협업한 공연이 펼쳐집니다.",
+    'MSC Divina': '소피아 로렌에게서 영감을 받은 MSC 디비나는 황금시대 크루즈의 우아함과 현대 기술이 만나는 선박입니다.',
+  },
+
+  // 선박 한글 소개 가져오기 (없으면 기본 템플릿)
+  shipTeaser(shipTitle, shipTitleKo, operator, shipClass, capacity, launchYear) {
+    if (this.shipTeaserKo[shipTitle]) return this.shipTeaserKo[shipTitle];
+    const name = shipTitleKo || shipTitle;
+    if (capacity && launchYear) {
+      return `${name}는 ${operator || ''}의 ${shipClass || ''} 클래스 선박으로, ${capacity}명의 승객을 수용합니다. ${launchYear}년 취항하여 다양한 시설과 엔터테인먼트를 갖추고 있습니다.`;
+    }
+    return null;
+  },
+
   // 유틸리티 함수
   portName(name) {
     return this.portNameKo[name] || name;
