@@ -1,4 +1,4 @@
-// Shared components
+// Shared components - Hybrid version
 const Components = {
   header(active = 'home') {
     return `
@@ -69,6 +69,59 @@ const Components = {
     return `<div class="loading"><div class="loading-spinner"></div><p>크루즈 정보를 불러오는 중...</p></div>`;
   },
 
+  // Local JSON cruise card (for index/destination/ships pages)
+  localCruiseCard(c) {
+    const fromPrice = c.priceBalcony || c.priceOutside || c.priceInside;
+    const region = c.regions?.[0] || '';
+    return `
+    <div class="cruise-card" onclick="location.href='cruise-view.html?ref=${c.ref}'">
+      <div class="cruise-card-img">
+        <img src="${c.image}" alt="${c.shipTitle}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 200%22><rect fill=%22%23e0e0e0%22 width=%22400%22 height=%22200%22/><text x=%2250%%22 y=%2250%%22 fill=%22%239e9e9e%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2220%22>🚢</text></svg>'">
+        ${region ? `<span class="cruise-card-tag">${region}</span>` : ''}
+      </div>
+      <div class="cruise-card-body">
+        <div class="cruise-card-operator">${c.operator} · ${c.shipTitle}</div>
+        <div class="cruise-card-title">${c.title}</div>
+        <div class="cruise-card-route">${c.portRoute}</div>
+        <div class="cruise-card-meta">
+          <span class="cruise-card-date">📅 ${API.formatDate(c.dateFrom)} · ${c.nights}박</span>
+          <span class="cruise-card-price">${API.formatPrice(fromPrice, c.currency)}</span>
+        </div>
+        <a href="cruise-view.html?ref=${c.ref}" class="cruise-card-btn">자세히 보기</a>
+      </div>
+    </div>`;
+  },
+
+  // Local JSON cruise list item
+  localCruiseItem(c) {
+    const fromPrice = c.priceBalcony || c.priceOutside || c.priceInside;
+    const region = c.regions?.[0] || '';
+    return `
+    <div class="cruise-item">
+      <div class="cruise-item-img">
+        <img src="${c.image}" alt="${c.shipTitle}" loading="lazy" onerror="this.style.display='none'">
+        ${region ? `<span class="cruise-item-tag">${region}</span>` : ''}
+      </div>
+      <div class="cruise-item-body">
+        <div class="cruise-item-operator">${c.operator} · ${c.shipTitle}</div>
+        <div class="cruise-item-title">${c.title}</div>
+        <div class="cruise-item-route">🚢 ${c.portRoute}</div>
+        <div class="cruise-item-hashtags">${(c.hashtags||[]).map(t => `<span>${t}</span>`).join('')}</div>
+        <div class="cruise-item-footer">
+          <div>
+            <div class="cruise-item-date">📅 ${API.formatDate(c.dateFrom)} ~ ${API.formatDate(c.dateTo)} · ${c.nights}박</div>
+            <div class="cruise-item-price">${API.formatPrice(fromPrice, c.currency)} <small style="font-weight:400;font-size:0.8rem;color:#616161">/1인 2인기준</small></div>
+          </div>
+          <div class="cruise-item-actions">
+            <a href="cruise-view.html?ref=${c.ref}" class="btn btn-navy btn-sm">상세보기</a>
+            <a href="https://pf.kakao.com/_xgYbJG" target="_blank" class="btn btn-orange btn-sm">문의</a>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  },
+
+  // Legacy: Live API cruise card (for cruise-view.html)
   cruiseCard(holiday, shipInfo) {
     const price = holiday.headline_prices?.cruise?.double;
     const fromPrice = price?.from_balcony || price?.from_inside || price?.from_outside;

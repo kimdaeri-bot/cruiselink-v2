@@ -85,19 +85,16 @@
     let currentPage = 1;
     let allResults = [];
 
-    // Set initial filter values from URL
     if (dest) document.getElementById('filterDest').value = dest;
     if (params.get('operator')) document.getElementById('filterOperator').value = params.get('operator');
     if (params.get('duration')) document.getElementById('filterDuration').value = params.get('duration');
 
-    // Update title
     if (dest && Translations.destNameKo[dest]) {
       document.getElementById('destTitle').textContent = Translations.destNameKo[dest] + ' 크루즈';
       document.getElementById('destSubtitle').textContent = `${Translations.destNameKo[dest]} 지역의 크루즈 상품을 확인하세요`;
       document.title = `${Translations.destNameKo[dest]} 크루즈 - 크루즈링크`;
     }
 
-    // Populate months
     const monthSelect = document.getElementById('filterMonth');
     const now = new Date();
     for (let i = 0; i < 24; i++) {
@@ -109,53 +106,15 @@
 
     async function loadCruises() {
       const container = document.getElementById('cruiseList');
-      const opFilter = document.getElementById('filterOperator').value;
-      const monthFilter = document.getElementById('filterMonth').value;
-      const durFilter = document.getElementById('filterDuration').value;
-      const destFilter = document.getElementById('filterDest').value;
-
       container.innerHTML = Components.loading();
-      allResults = [];
 
       try {
-        const ships = await API.getAllShips();
-        const filteredShips = opFilter ? ships.filter(s => s.operator?.name?.includes(opFilter)) : ships;
-        const threeMonths = new Date(Date.now() + 90 * 86400000);
-
-        for (const ship of filteredShips) {
-          const match = ship.href?.match(/ships\/([^.]+)\.json/);
-          if (!match) continue;
-          const shipData = await API.getShip(match[1]);
-          if (!shipData?.cruises) continue;
-
-          for (const c of shipData.cruises) {
-            try {
-              const h = await API.getHoliday(c.ref);
-              if (!h?.date_from) continue;
-              const depDate = new Date(h.date_from);
-              if (depDate < threeMonths) continue;
-
-              // Destination filter
-              if (destFilter && !API.matchesDest(h, destFilter)) continue;
-
-              // Month filter
-              if (monthFilter) {
-                const [y, m] = monthFilter.split('-');
-                if (depDate.getFullYear() !== parseInt(y) || depDate.getMonth() + 1 !== parseInt(m)) continue;
-              }
-
-              // Duration filter
-              const nights = h.cruise_nights || h.duration_days || 0;
-              if (durFilter === 'short' && nights > 5) continue;
-              if (durFilter === 'medium' && (nights < 6 || nights > 10)) continue;
-              if (durFilter === 'long' && nights < 11) continue;
-
-              allResults.push({ holiday: h, shipInfo: { coverImage: ship.cover_image_href, operator: ship.operator?.name } });
-            } catch (e) { continue; }
-          }
-        }
-
-        allResults.sort((a, b) => new Date(a.holiday.date_from) - new Date(b.holiday.date_from));
+        allResults = await API.filterCruises({
+          dest: document.getElementById('filterDest').value,
+          operator: document.getElementById('filterOperator').value,
+          month: document.getElementById('filterMonth').value,
+          duration: document.getElementById('filterDuration').value,
+        });
         currentPage = 1;
         renderPage();
       } catch (e) {
@@ -181,9 +140,8 @@
       const start = (currentPage - 1) * PER_PAGE;
       const pageItems = allResults.slice(start, start + PER_PAGE);
 
-      container.innerHTML = pageItems.map(r => Components.cruiseItem(r.holiday, r.shipInfo)).join('');
+      container.innerHTML = pageItems.map(c => Components.localCruiseItem(c)).join('');
 
-      // Pagination
       if (totalPages > 1) {
         let html = '';
         for (let i = 1; i <= totalPages; i++) {

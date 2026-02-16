@@ -138,7 +138,6 @@
   <script src="assets/js/api.js"></script>
   <script src="assets/js/components.js"></script>
   <script>
-    // Render shared components
     document.getElementById('header').innerHTML = Components.header('home');
     document.getElementById('footer').innerHTML = Components.footer();
     document.getElementById('ctaSection').innerHTML = Components.ctaSection();
@@ -169,62 +168,31 @@
     }
     setInterval(() => { promoIdx = (promoIdx + 1) % 3; updatePromo(); }, 5000);
 
-    // Load recommended cruises
+    // Load recommended cruises from LOCAL JSON
     async function loadRecommended() {
       const container = document.getElementById('recommendedCruises');
       try {
-        const ships = await API.getAllShips();
-        // Pick first 6 ships, get their nearest cruise
-        const selected = ships.slice(0, 12);
-        const holidays = [];
-        const threeMonths = new Date(Date.now() + 90 * 86400000);
-
-        for (const ship of selected) {
-          if (holidays.length >= 9) break;
-          const match = ship.href?.match(/ships\/([^.]+)\.json/);
-          if (!match) continue;
-          const slug = match[1];
-          const shipData = await API.getShip(slug);
-          if (!shipData?.cruises?.length) continue;
-
-          // Find nearest future cruise
-          for (const c of shipData.cruises.slice(0, 20)) {
-            if (holidays.length >= 9) break;
-            try {
-              const h = await API.getHoliday(c.ref);
-              if (!h || !h.date_from) continue;
-              const depDate = new Date(h.date_from);
-              if (depDate < threeMonths) continue;
-              holidays.push({ holiday: h, shipInfo: { coverImage: ship.cover_image_href, operator: ship.operator?.name } });
-              break; // one per ship
-            } catch (e) { continue; }
-          }
-        }
-
-        // Sort by departure date
-        holidays.sort((a, b) => new Date(a.holiday.date_from) - new Date(b.holiday.date_from));
-
-        if (holidays.length === 0) {
+        const cruises = await API.getRecommendedCruises(9);
+        if (cruises.length === 0) {
           container.innerHTML = '<div class="empty-state"><span class="emoji">🔍</span><p>표시할 크루즈가 없습니다</p></div>';
           return;
         }
-
-        container.innerHTML = holidays.map(h => Components.cruiseCard(h.holiday, h.shipInfo)).join('');
+        container.innerHTML = cruises.map(c => Components.localCruiseCard(c)).join('');
       } catch (e) {
         console.error(e);
-        container.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>데이터를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.</p></div>';
+        container.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>데이터를 불러올 수 없습니다</p></div>';
       }
     }
 
-    // Search
+    // Search from LOCAL JSON
     async function doSearch() {
       const dest = document.getElementById('filterDest').value;
+      const op = document.getElementById('filterOperator').value;
+      const month = document.getElementById('filterMonth').value;
+      const dur = document.getElementById('filterDuration').value;
+
       if (dest) {
-        // Redirect to destination page with filters
         let url = `destination.html?dest=${dest}`;
-        const op = document.getElementById('filterOperator').value;
-        const month = document.getElementById('filterMonth').value;
-        const dur = document.getElementById('filterDuration').value;
         if (op) url += `&operator=${op}`;
         if (month) url += `&month=${month}`;
         if (dur) url += `&duration=${dur}`;
@@ -232,59 +200,18 @@
         return;
       }
 
-      // Search across all
       const resultsSection = document.getElementById('searchResults');
       const searchList = document.getElementById('searchList');
       const searchCount = document.getElementById('searchCount');
       resultsSection.style.display = 'block';
       searchList.innerHTML = Components.loading();
 
-      const op = document.getElementById('filterOperator').value;
-      const month = document.getElementById('filterMonth').value;
-      const dur = document.getElementById('filterDuration').value;
-
       try {
-        const ships = await API.getAllShips();
-        const filteredShips = op ? ships.filter(s => s.operator?.name?.includes(op)) : ships;
-        const results = [];
-        const threeMonths = new Date(Date.now() + 90 * 86400000);
-
-        for (const ship of filteredShips.slice(0, 15)) {
-          if (results.length >= 20) break;
-          const match = ship.href?.match(/ships\/([^.]+)\.json/);
-          if (!match) continue;
-          const shipData = await API.getShip(match[1]);
-          if (!shipData?.cruises) continue;
-
-          for (const c of shipData.cruises.slice(0, 30)) {
-            if (results.length >= 20) break;
-            try {
-              const h = await API.getHoliday(c.ref);
-              if (!h?.date_from) continue;
-              const depDate = new Date(h.date_from);
-              if (depDate < threeMonths) continue;
-              // Month filter
-              if (month) {
-                const [y, m] = month.split('-');
-                if (depDate.getFullYear() !== parseInt(y) || depDate.getMonth() + 1 !== parseInt(m)) continue;
-              }
-              // Duration filter
-              const nights = h.cruise_nights || h.duration_days || 0;
-              if (dur === 'short' && nights > 5) continue;
-              if (dur === 'medium' && (nights < 6 || nights > 10)) continue;
-              if (dur === 'long' && nights < 11) continue;
-
-              results.push({ holiday: h, shipInfo: { coverImage: ship.cover_image_href, operator: ship.operator?.name } });
-            } catch (e) { continue; }
-          }
-        }
-
-        results.sort((a, b) => new Date(a.holiday.date_from) - new Date(b.holiday.date_from));
+        const results = await API.filterCruises({ operator: op, month, duration: dur, limit: 50 });
         searchCount.textContent = `${results.length}개의 크루즈를 찾았습니다`;
         searchList.innerHTML = results.length
-          ? results.map(r => Components.cruiseItem(r.holiday, r.shipInfo)).join('')
+          ? results.map(c => Components.localCruiseItem(c)).join('')
           : '<div class="empty-state"><span class="emoji">🔍</span><p>조건에 맞는 크루즈가 없습니다</p></div>';
-
         resultsSection.scrollIntoView({ behavior: 'smooth' });
       } catch (e) {
         searchList.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>검색 중 오류가 발생했습니다</p></div>';

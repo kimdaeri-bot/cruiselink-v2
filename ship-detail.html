@@ -29,64 +29,46 @@
     async function load() {
       if (!slug) return;
       const content = document.getElementById('content');
-      try {
-        const s = await API.getShip(slug);
-        const ships = await API.getAllShips();
-        const shipList = ships.find(sh => sh.href?.includes(slug));
-        if (!s) { content.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>선박을 찾을 수 없습니다</p></div>'; return; }
 
-        const facts = s.ship_facts || {};
-        document.title = `${s.title} - 크루즈링크`;
+      try {
+        // Load basic specs from local JSON (instant)
+        const localShip = await API.getLocalShip(slug);
+        if (!localShip) { content.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>선박을 찾을 수 없습니다</p></div>'; return; }
+
+        document.title = `${localShip.title} - 크루즈링크`;
         let html = '';
 
         // Hero
         html += `<div class="ship-hero">
-          <img src="${shipList?.cover_image_href || s.cover_image_href || ''}" alt="${s.title}">
+          <img src="${localShip.coverImage}" alt="${localShip.title}">
           <div class="ship-hero-overlay">
-            <p>${s.operator?.name || ''} · ${s.ship_class || ''}</p>
-            <h1>${s.title}</h1>
+            <p>${localShip.operator} · ${localShip.shipClass}</p>
+            <h1>${localShip.title}</h1>
           </div>
         </div>`;
 
-        // Specs
+        // Specs from local JSON
         html += `<section class="section"><div class="container">
           <div class="spec-grid">`;
         const specs = [
-          ['취항연도', facts.launch_year || '-'], ['리뉴얼', facts.refit_year || '-'],
-          ['총톤수', facts.gross_tonnage ? facts.gross_tonnage.toLocaleString() + 't' : '-'],
-          ['전장', facts.length ? facts.length + 'm' : '-'],
-          ['최대정원', facts.capacity ? facts.capacity.toLocaleString() + '명' : '-'],
-          ['승무원', facts.crew_count ? facts.crew_count.toLocaleString() + '명' : '-'],
-          ['데크', facts.deck_count ? facts.deck_count + '개' : '-'],
-          ['객실', facts.cabin_count ? facts.cabin_count.toLocaleString() + '실' : '-'],
+          ['취항연도', localShip.launchYear || '-'], ['리뉴얼', localShip.refitYear || '-'],
+          ['총톤수', localShip.grossTonnage ? localShip.grossTonnage.toLocaleString() + 't' : '-'],
+          ['전장', localShip.length ? localShip.length + 'm' : '-'],
+          ['최대정원', localShip.capacity ? localShip.capacity.toLocaleString() + '명' : '-'],
+          ['승무원', localShip.crewCount ? localShip.crewCount.toLocaleString() + '명' : '-'],
+          ['데크', localShip.deckCount ? localShip.deckCount + '개' : '-'],
+          ['객실', localShip.cabinCount ? localShip.cabinCount.toLocaleString() + '실' : '-'],
         ];
         specs.forEach(([l, v]) => html += `<div class="spec-item"><div class="spec-label">${l}</div><div class="spec-value">${v}</div></div>`);
         html += `</div>`;
 
-        // Tabs
-        const tabData = [{ id: 'overview', label: '📋 개요', content: s.teaser || s.introduction || '' }];
-        if (s.accomodation_types?.length) tabData.push({ id: 'cabin', label: '🛏️ 객실', content: '__cabins__' });
-        if (s.dining?.intro) tabData.push({ id: 'dining', label: '🍽️ 다이닝', content: s.dining.intro });
-        if (s.entertainment?.intro) tabData.push({ id: 'entertainment', label: '🎭 엔터테인먼트', content: s.entertainment.intro });
-        if (s.health_and_fitness?.intro) tabData.push({ id: 'spa', label: '💆 스파', content: s.health_and_fitness.intro });
-        if (s.kids_and_teens?.intro) tabData.push({ id: 'kids', label: '👶 키즈', content: s.kids_and_teens.intro });
-
-        html += `<div class="tabs">${tabData.map((t, i) => `<button class="tab-btn ${i === 0 ? 'active' : ''}" onclick="switchTab('${t.id}',this)">${t.label}</button>`).join('')}</div>`;
-        tabData.forEach((t, i) => {
-          let c = t.content;
-          if (c === '__cabins__') {
-            c = '<div class="cabin-grid">' + s.accomodation_types.map(at => {
-              const img = at.images?.[0]?.href || '';
-              return `<div class="cabin-card">${img ? `<img src="${img}" alt="${at.name}" loading="lazy">` : ''}<div class="cabin-card-body"><h4>${at.name}</h4></div></div>`;
-            }).join('') + '</div>';
-          }
-          html += `<div class="tab-content ${i === 0 ? 'active' : ''}" id="tab-${t.id}">${c}</div>`;
-        });
+        // Tabs placeholder (will be filled by live API)
+        html += `<div id="shipTabs"><div class="loading" style="padding:20px"><div class="loading-spinner"></div><p>시설 정보를 불러오는 중...</p></div></div>`;
         html += `</div></section>`;
 
         // Video
-        if (s.video_url) {
-          const vid = s.video_url.match(/(?:v=|\/)([\w-]{11})/)?.[1];
+        if (localShip.videoUrl) {
+          const vid = localShip.videoUrl.match(/(?:v=|\/)([\w-]{11})/)?.[1];
           if (vid) {
             html += `<section class="section" style="background:var(--gray-50)"><div class="container">
               <h2 class="section-title">선박 영상</h2>
@@ -97,46 +79,66 @@
           }
         }
 
-        // Cruises for this ship
-        if (s.cruises?.length) {
-          html += `<section class="section"><div class="container">
-            <h2 class="section-title">${s.title} 크루즈 일정</h2>
-            <p class="section-subtitle">출발일 기준 정렬 (3개월 이후 출발)</p>
-            <div id="shipCruises" class="cruise-list"><div class="loading"><div class="loading-spinner"></div><p>크루즈 일정을 불러오는 중...</p></div></div>
-          </div></section>`;
-        }
+        // Cruises from local JSON
+        html += `<section class="section"><div class="container">
+          <h2 class="section-title">${localShip.title} 크루즈 일정</h2>
+          <p class="section-subtitle">출발일 기준 정렬</p>
+          <div id="shipCruises"><div class="loading"><div class="loading-spinner"></div><p>크루즈 일정을 불러오는 중...</p></div></div>
+        </div></section>`;
 
         content.innerHTML = html;
 
-        // Load cruises
-        if (s.cruises?.length) {
-          loadShipCruises(s.cruises, shipList);
-        }
+        // Load cruises from local JSON (instant)
+        loadShipCruises();
+
+        // Load facilities from live API (async, non-blocking)
+        loadFacilities();
+
       } catch (e) {
         console.error(e);
         content.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>데이터를 불러올 수 없습니다</p></div>';
       }
     }
 
-    async function loadShipCruises(cruises, shipInfo) {
+    async function loadShipCruises() {
       const container = document.getElementById('shipCruises');
-      const threeMonths = new Date(Date.now() + 90 * 86400000);
-      const results = [];
-
-      for (const c of cruises.slice(0, 50)) {
-        if (results.length >= 20) break;
-        try {
-          const h = await API.getHoliday(c.ref);
-          if (!h?.date_from) continue;
-          if (new Date(h.date_from) < threeMonths) continue;
-          results.push({ holiday: h, shipInfo: { coverImage: shipInfo?.cover_image_href, operator: shipInfo?.operator?.name } });
-        } catch (e) { continue; }
-      }
-
-      results.sort((a, b) => new Date(a.holiday.date_from) - new Date(b.holiday.date_from));
-      container.innerHTML = results.length
-        ? results.map(r => Components.cruiseItem(r.holiday, r.shipInfo)).join('')
+      const cruises = await API.getShipCruises(slug);
+      container.innerHTML = cruises.length
+        ? cruises.slice(0, 30).map(c => Components.localCruiseItem(c)).join('')
         : '<div class="empty-state"><span class="emoji">📅</span><p>예정된 크루즈가 없습니다</p></div>';
+    }
+
+    async function loadFacilities() {
+      const tabsContainer = document.getElementById('shipTabs');
+      try {
+        const s = await API.getShipLive(slug);
+        if (!s) { tabsContainer.innerHTML = ''; return; }
+
+        const tabData = [];
+        if (s.teaser || s.introduction) tabData.push({ id: 'overview', label: '📋 개요', content: s.teaser || s.introduction });
+        if (s.accomodation_types?.length) tabData.push({ id: 'cabin', label: '🛏️ 객실', content: '__cabins__' });
+        if (s.dining?.intro) tabData.push({ id: 'dining', label: '🍽️ 다이닝', content: s.dining.intro });
+        if (s.entertainment?.intro) tabData.push({ id: 'entertainment', label: '🎭 엔터테인먼트', content: s.entertainment.intro });
+        if (s.health_and_fitness?.intro) tabData.push({ id: 'spa', label: '💆 스파', content: s.health_and_fitness.intro });
+        if (s.kids_and_teens?.intro) tabData.push({ id: 'kids', label: '👶 키즈', content: s.kids_and_teens.intro });
+
+        if (tabData.length === 0) { tabsContainer.innerHTML = ''; return; }
+
+        let html = `<div class="tabs">${tabData.map((t, i) => `<button class="tab-btn ${i === 0 ? 'active' : ''}" onclick="switchTab('${t.id}',this)">${t.label}</button>`).join('')}</div>`;
+        tabData.forEach((t, i) => {
+          let c = t.content;
+          if (c === '__cabins__') {
+            c = '<div class="cabin-grid">' + s.accomodation_types.map(at => {
+              const img = at.images?.[0]?.href || '';
+              return `<div class="cabin-card">${img ? `<img src="${img}" alt="${at.name}" loading="lazy">` : ''}<div class="cabin-card-body"><h4>${at.name}</h4></div></div>`;
+            }).join('') + '</div>';
+          }
+          html += `<div class="tab-content ${i === 0 ? 'active' : ''}" id="tab-${t.id}">${c}</div>`;
+        });
+        tabsContainer.innerHTML = html;
+      } catch (e) {
+        tabsContainer.innerHTML = '';
+      }
     }
 
     function switchTab(id, btn) {
