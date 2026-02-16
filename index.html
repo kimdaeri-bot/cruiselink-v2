@@ -296,62 +296,78 @@
     let destPos = 0;
     const destTrack = document.getElementById('destTrack');
     const destSlider = document.getElementById('destSlider');
-    function slideDest(dir) {
-      const cards = destTrack.children;
-      const cardW = cards[0].offsetWidth + 16; // gap
-      const visible = Math.floor(destSlider.offsetWidth / cardW);
-      const maxPos = cards.length - visible;
-      destPos = Math.max(0, Math.min(maxPos, destPos + dir));
-      destTrack.style.transform = `translateX(-${destPos * cardW}px)`;
+
+    function getCardWidth() {
+      const card = destTrack.children[0];
+      if (!card) return 200;
+      return card.offsetWidth + 16; // 16 = gap
     }
-    // Drag to scroll
-    let isDrag = false, startX = 0, startScroll = 0, dragDist = 0;
-    destSlider.addEventListener('mousedown', e => {
+    function getVisibleCount() {
+      return Math.floor(destSlider.offsetWidth / getCardWidth()) || 1;
+    }
+    function getMaxPos() {
+      return Math.max(0, destTrack.children.length - getVisibleCount());
+    }
+    function applySlide(animate) {
+      if (animate !== false) destTrack.style.transition = 'transform 0.4s ease';
+      else destTrack.style.transition = 'none';
+      destTrack.style.transform = 'translateX(-' + (destPos * getCardWidth()) + 'px)';
+    }
+
+    function slideDest(dir) {
+      destPos = Math.max(0, Math.min(getMaxPos(), destPos + dir));
+      applySlide(true);
+    }
+
+    // Drag to scroll (mouse)
+    let isDrag = false, startX = 0, scrollStart = 0, dragDist = 0;
+    destSlider.addEventListener('mousedown', function(e) {
+      e.preventDefault(); // prevent <a> drag
       isDrag = true; startX = e.pageX; dragDist = 0;
-      startScroll = destPos * (destTrack.children[0].offsetWidth + 16);
-      destTrack.style.transition = 'none';
+      scrollStart = destPos * getCardWidth();
+      applySlide(false);
     });
-    document.addEventListener('mousemove', e => {
+    document.addEventListener('mousemove', function(e) {
       if (!isDrag) return;
-      const dx = e.pageX - startX;
+      var dx = e.pageX - startX;
       dragDist = Math.abs(dx);
-      destTrack.style.transform = `translateX(${-(startScroll - dx)}px)`;
+      destTrack.style.transition = 'none';
+      destTrack.style.transform = 'translateX(' + (-(scrollStart - dx)) + 'px)';
     });
-    document.addEventListener('mouseup', () => {
+    document.addEventListener('mouseup', function() {
       if (!isDrag) return;
       isDrag = false;
-      destTrack.style.transition = 'transform 0.4s ease';
-      const cardW = destTrack.children[0].offsetWidth + 16;
-      const raw = parseFloat(destTrack.style.transform.replace(/[^0-9.-]/g,'')) || 0;
-      const visible = Math.floor(destSlider.offsetWidth / cardW);
-      const maxPos = destTrack.children.length - visible;
-      destPos = Math.max(0, Math.min(maxPos, Math.round(-raw / cardW)));
-      destTrack.style.transform = `translateX(-${destPos * cardW}px)`;
+      var cw = getCardWidth();
+      var currentOffset = scrollStart - (0); // need actual offset
+      // Parse current transform
+      var m = destTrack.style.transform.match(/translateX\((.+?)px\)/);
+      var px = m ? parseFloat(m[1]) : 0;
+      destPos = Math.max(0, Math.min(getMaxPos(), Math.round(-px / cw)));
+      applySlide(true);
     });
-    // Prevent click on drag
-    destSlider.addEventListener('click', e => { if (dragDist > 5) e.preventDefault(); }, true);
+    destSlider.addEventListener('click', function(e) { if (dragDist > 5) e.preventDefault(); }, true);
+
     // Touch support
-    destSlider.addEventListener('touchstart', e => {
+    destSlider.addEventListener('touchstart', function(e) {
       isDrag = true; startX = e.touches[0].pageX; dragDist = 0;
-      startScroll = destPos * (destTrack.children[0].offsetWidth + 16);
-      destTrack.style.transition = 'none';
+      scrollStart = destPos * getCardWidth();
+      applySlide(false);
     }, {passive: true});
-    destSlider.addEventListener('touchmove', e => {
+    destSlider.addEventListener('touchmove', function(e) {
       if (!isDrag) return;
-      const dx = e.touches[0].pageX - startX;
+      var dx = e.touches[0].pageX - startX;
       dragDist = Math.abs(dx);
-      destTrack.style.transform = `translateX(${-(startScroll - dx)}px)`;
+      destTrack.style.transition = 'none';
+      destTrack.style.transform = 'translateX(' + (-(scrollStart - dx)) + 'px)';
     }, {passive: true});
-    destSlider.addEventListener('touchend', () => {
+    destSlider.addEventListener('touchend', function() {
       if (!isDrag) return;
       isDrag = false;
-      destTrack.style.transition = 'transform 0.4s ease';
-      const cardW = destTrack.children[0].offsetWidth + 16;
-      const visible = Math.floor(destSlider.offsetWidth / cardW);
-      const maxPos = destTrack.children.length - visible;
-      const raw = parseFloat(destTrack.style.transform.replace(/[^0-9.-]/g,'')) || 0;
-      destPos = Math.max(0, Math.min(maxPos, Math.round(-raw / cardW)));
-      destTrack.style.transform = `translateX(-${destPos * cardW}px)`;
+      var cw = getCardWidth();
+      var m = destTrack.style.transform.match(/translateX\((.+?)px\)/);
+      var px = m ? parseFloat(m[1]) : 0;
+      destPos = Math.max(0, Math.min(getMaxPos(), Math.round(-px / cw)));
+      applySlide(true);
     });
 
     loadRecommended();
