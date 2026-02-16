@@ -56,10 +56,10 @@ const Components = {
       <div class="container">
         <h2>크루즈 여행, 지금 상담하세요</h2>
         <p>전문 상담원이 최적의 크루즈를 찾아드립니다</p>
-        <div class="cta-buttons">
+        <div class="cta-buttons cta-three">
           <a href="https://pf.kakao.com/_xgYbJG" target="_blank" class="btn btn-orange">💬 카카오톡 상담</a>
           <a href="tel:02-3788-9119" class="btn btn-white">📞 02-3788-9119</a>
-          <a href="mailto:info@londonshow.co.kr" class="btn btn-outline">✉️ 이메일 문의</a>
+          <button class="btn btn-white-solid" onclick="openInquiry()">📋 온라인 문의</button>
         </div>
       </div>
     </section>`;

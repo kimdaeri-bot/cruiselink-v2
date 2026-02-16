@@ -199,6 +199,8 @@ img { max-width: 100%; height: auto; }
 .cta-buttons.cta-two button.btn { cursor: pointer; }
 .btn-white-solid { background: var(--white); color: var(--navy); border: none; }
 .btn-white-solid:hover { background: var(--gray-100); transform: translateY(-1px); }
+.cta-buttons.cta-three { max-width: 600px; margin: 0 auto; }
+.cta-buttons.cta-three .btn { flex: 1; min-width: 0; text-align: center; padding: 16px 12px; font-size: 1.02rem; font-weight: 700; border-radius: 12px; }
 
 /* ===== FOOTER ===== */
 .footer {
@@ -458,6 +460,8 @@ img { max-width: 100%; height: auto; }
   .dest-card .emoji { font-size: 2rem; }
   /* hero-ctas removed */
   .cta-buttons { flex-direction: column; align-items: center; }
+  .cta-buttons.cta-three { align-items: stretch; }
+  .cta-buttons.cta-three .btn { width: 100%; }
   .cta-buttons.cta-two { flex-direction: row; }
   .cta-buttons.cta-two .btn { flex: 1; min-width: 0; text-align: center; }
   .info-bar { grid-template-columns: 1fr; }

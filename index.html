@@ -216,6 +216,72 @@
     }
 
     loadRecommended();
+
+    /* ── Inquiry Modal ── */
+    function openInquiry() {
+      document.getElementById('inquiryModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeInquiry() {
+      document.getElementById('inquiryModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('click', e => { if (e.target.id === 'inquiryModal') closeInquiry(); });
+    function submitInquiry(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true; btn.textContent = '전송 중...';
+      setTimeout(() => {
+        document.getElementById('formStatus').innerHTML = '<div style="background:#e8f5e9;padding:16px;border-radius:8px;color:#2e7d32;margin-bottom:16px">✅ 문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.</div>';
+        document.getElementById('inquiryForm').style.display = 'none';
+        btn.style.display = 'none';
+      }, 800);
+    }
   </script>
+
+  <!-- Inquiry Modal -->
+  <div class="modal-overlay" id="inquiryModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>🚢 크루즈 문의하기</h2>
+        <button class="modal-close" onclick="closeInquiry()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-status" id="formStatus"></div>
+        <form id="inquiryForm" onsubmit="submitInquiry(event)">
+          <div class="form-group">
+            <label>영문 이름 (여권 기재명) <span class="req">*</span></label>
+            <input type="text" id="f_name" name="customer_name" required placeholder="HONG GILDONG">
+          </div>
+          <div class="form-group">
+            <label>이메일 <span class="req">*</span></label>
+            <input type="email" id="f_email" name="customer_email" required placeholder="example@email.com">
+          </div>
+          <div class="form-group">
+            <label>연락처 <span class="req">*</span></label>
+            <input type="tel" id="f_phone" name="customer_phone" required placeholder="010-1234-5678">
+          </div>
+          <div class="form-group">
+            <label>관심 크루즈 / 요청사항 <span class="req">*</span></label>
+            <textarea id="f_message" name="message" rows="3" required placeholder="관심 있는 크루즈나 여행 일정을 알려주세요."></textarea>
+          </div>
+          <div class="privacy-section">
+            <div class="privacy-check">
+              <input type="checkbox" id="privacyAgree" required>
+              <label for="privacyAgree">개인정보 수집·이용에 동의합니다. (필수)</label>
+            </div>
+            <button type="button" class="privacy-toggle" onclick="document.getElementById('privacyDetail').classList.toggle('open')">약관 보기 ▼</button>
+            <div class="privacy-detail" id="privacyDetail">
+              <strong>수집항목:</strong> 이름, 이메일, 연락처<br>
+              <strong>수집목적:</strong> 크루즈 상담 및 예약 안내<br>
+              <strong>보유기간:</strong> 상담 완료 후 1년<br><br>
+              위 개인정보 수집·이용에 동의하지 않을 수 있으며, 동의하지 않을 경우 문의 접수가 불가합니다.
+            </div>
+          </div>
+          <button type="submit" class="btn btn-orange" id="submitBtn" style="width:100%;margin-top:16px;padding:14px;font-size:1.05rem">문의하기 전송</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
