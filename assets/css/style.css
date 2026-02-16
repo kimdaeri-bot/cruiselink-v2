@@ -138,6 +138,7 @@ img { max-width: 100%; height: auto; }
 .cruise-card {
   border: 2px solid #cfd8dc; border-radius: var(--radius); overflow: hidden;
   background: var(--white); transition: all 0.2s; cursor: pointer;
+  display: flex; flex-direction: column;
 }
 .cruise-card:hover { border-color: var(--navy); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
 .cruise-card-img {
@@ -149,11 +150,11 @@ img { max-width: 100%; height: auto; }
   color: var(--white); padding: 4px 10px; border-radius: 4px;
   font-size: 0.75rem; font-weight: 700;
 }
-.cruise-card-body { padding: 16px; }
+.cruise-card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
 .cruise-card-operator { font-size: 0.8rem; color: var(--gray-500); margin-bottom: 4px; }
 .cruise-card-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; line-height: 1.4; color: var(--navy); }
 .cruise-card-route { font-size: 0.85rem; color: var(--gray-700); margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.cruise-card-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--gray-200); }
+.cruise-card-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--gray-200); margin-top: auto; }
 .cruise-card-date { font-size: 0.85rem; color: var(--gray-700); }
 .cruise-card-price { font-size: 1.1rem; font-weight: 900; color: var(--orange); }
 .cruise-card-btn { display: block; text-align: center; padding: 10px; margin-top: 12px; background: var(--navy); color: var(--white); border-radius: var(--radius); font-weight: 700; font-size: 0.9rem; transition: background 0.2s; }
