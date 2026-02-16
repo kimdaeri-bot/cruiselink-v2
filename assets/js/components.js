@@ -114,7 +114,7 @@ const Components = {
           </div>
           <div class="cruise-item-actions">
             <a href="cruise-view.html?ref=${c.ref}" class="btn btn-navy btn-sm">상세보기</a>
-            <a href="https://pf.kakao.com/_xgYbJG" target="_blank" class="btn btn-orange btn-sm">문의</a>
+            <button class="btn btn-orange btn-sm" onclick="openInquiry()">문의</button>
           </div>
         </div>
       </div>
@@ -172,7 +172,7 @@ const Components = {
           </div>
           <div class="cruise-item-actions">
             <a href="cruise-view.html?ref=${holiday.date_ref}" class="btn btn-navy btn-sm">상세보기</a>
-            <a href="https://pf.kakao.com/_xgYbJG" target="_blank" class="btn btn-orange btn-sm">문의</a>
+            <button class="btn btn-orange btn-sm" onclick="openInquiry()">문의</button>
           </div>
         </div>
       </div>
