@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>선박 상세 - 크루즈링크</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚢</text></svg>">
+</head>
+<body>
+  <div id="header"></div>
+  <div id="content">
+    <div class="loading" style="padding:100px 20px"><div class="loading-spinner"></div><p>선박 정보를 불러오는 중...</p></div>
+  </div>
+  <div id="ctaSection"></div>
+  <div id="footer"></div>
+
+  <script src="assets/data/translations.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/components.js"></script>
+  <script>
+    document.getElementById('header').innerHTML = Components.header('ships');
+    document.getElementById('footer').innerHTML = Components.footer();
+    document.getElementById('ctaSection').innerHTML = Components.ctaSection();
+
+    const slug = new URLSearchParams(location.search).get('slug');
+    if (!slug) { document.getElementById('content').innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>잘못된 접근입니다</p></div>'; }
+
+    async function load() {
+      if (!slug) return;
+      const content = document.getElementById('content');
+      try {
+        const s = await API.getShip(slug);
+        const ships = await API.getAllShips();
+        const shipList = ships.find(sh => sh.href?.includes(slug));
+        if (!s) { content.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>선박을 찾을 수 없습니다</p></div>'; return; }
+
+        const facts = s.ship_facts || {};
+        document.title = `${s.title} - 크루즈링크`;
+        let html = '';
+
+        // Hero
+        html += `<div class="ship-hero">
+          <img src="${shipList?.cover_image_href || s.cover_image_href || ''}" alt="${s.title}">
+          <div class="ship-hero-overlay">
+            <p>${s.operator?.name || ''} · ${s.ship_class || ''}</p>
+            <h1>${s.title}</h1>
+          </div>
+        </div>`;
+
+        // Specs
+        html += `<section class="section"><div class="container">
+          <div class="spec-grid">`;
+        const specs = [
+          ['취항연도', facts.launch_year || '-'], ['리뉴얼', facts.refit_year || '-'],
+          ['총톤수', facts.gross_tonnage ? facts.gross_tonnage.toLocaleString() + 't' : '-'],
+          ['전장', facts.length ? facts.length + 'm' : '-'],
+          ['최대정원', facts.capacity ? facts.capacity.toLocaleString() + '명' : '-'],
+          ['승무원', facts.crew_count ? facts.crew_count.toLocaleString() + '명' : '-'],
+          ['데크', facts.deck_count ? facts.deck_count + '개' : '-'],
+          ['객실', facts.cabin_count ? facts.cabin_count.toLocaleString() + '실' : '-'],
+        ];
+        specs.forEach(([l, v]) => html += `<div class="spec-item"><div class="spec-label">${l}</div><div class="spec-value">${v}</div></div>`);
+        html += `</div>`;
+
+        // Tabs
+        const tabData = [{ id: 'overview', label: '📋 개요', content: s.teaser || s.introduction || '' }];
+        if (s.accomodation_types?.length) tabData.push({ id: 'cabin', label: '🛏️ 객실', content: '__cabins__' });
+        if (s.dining?.intro) tabData.push({ id: 'dining', label: '🍽️ 다이닝', content: s.dining.intro });
+        if (s.entertainment?.intro) tabData.push({ id: 'entertainment', label: '🎭 엔터테인먼트', content: s.entertainment.intro });
+        if (s.health_and_fitness?.intro) tabData.push({ id: 'spa', label: '💆 스파', content: s.health_and_fitness.intro });
+        if (s.kids_and_teens?.intro) tabData.push({ id: 'kids', label: '👶 키즈', content: s.kids_and_teens.intro });
+
+        html += `<div class="tabs">${tabData.map((t, i) => `<button class="tab-btn ${i === 0 ? 'active' : ''}" onclick="switchTab('${t.id}',this)">${t.label}</button>`).join('')}</div>`;
+        tabData.forEach((t, i) => {
+          let c = t.content;
+          if (c === '__cabins__') {
+            c = '<div class="cabin-grid">' + s.accomodation_types.map(at => {
+              const img = at.images?.[0]?.href || '';
+              return `<div class="cabin-card">${img ? `<img src="${img}" alt="${at.name}" loading="lazy">` : ''}<div class="cabin-card-body"><h4>${at.name}</h4></div></div>`;
+            }).join('') + '</div>';
+          }
+          html += `<div class="tab-content ${i === 0 ? 'active' : ''}" id="tab-${t.id}">${c}</div>`;
+        });
+        html += `</div></section>`;
+
+        // Video
+        if (s.video_url) {
+          const vid = s.video_url.match(/(?:v=|\/)([\w-]{11})/)?.[1];
+          if (vid) {
+            html += `<section class="section" style="background:var(--gray-50)"><div class="container">
+              <h2 class="section-title">선박 영상</h2>
+              <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;margin-top:24px">
+                <iframe src="https://www.youtube.com/embed/${vid}" style="position:absolute;top:0;left:0;width:100%;height:100%" frameborder="0" allowfullscreen loading="lazy"></iframe>
+              </div>
+            </div></section>`;
+          }
+        }
+
+        // Cruises for this ship
+        if (s.cruises?.length) {
+          html += `<section class="section"><div class="container">
+            <h2 class="section-title">${s.title} 크루즈 일정</h2>
+            <p class="section-subtitle">출발일 기준 정렬 (3개월 이후 출발)</p>
+            <div id="shipCruises" class="cruise-list"><div class="loading"><div class="loading-spinner"></div><p>크루즈 일정을 불러오는 중...</p></div></div>
+          </div></section>`;
+        }
+
+        content.innerHTML = html;
+
+        // Load cruises
+        if (s.cruises?.length) {
+          loadShipCruises(s.cruises, shipList);
+        }
+      } catch (e) {
+        console.error(e);
+        content.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>데이터를 불러올 수 없습니다</p></div>';
+      }
+    }
+
+    async function loadShipCruises(cruises, shipInfo) {
+      const container = document.getElementById('shipCruises');
+      const threeMonths = new Date(Date.now() + 90 * 86400000);
+      const results = [];
+
+      for (const c of cruises.slice(0, 50)) {
+        if (results.length >= 20) break;
+        try {
+          const h = await API.getHoliday(c.ref);
+          if (!h?.date_from) continue;
+          if (new Date(h.date_from) < threeMonths) continue;
+          results.push({ holiday: h, shipInfo: { coverImage: shipInfo?.cover_image_href, operator: shipInfo?.operator?.name } });
+        } catch (e) { continue; }
+      }
+
+      results.sort((a, b) => new Date(a.holiday.date_from) - new Date(b.holiday.date_from));
+      container.innerHTML = results.length
+        ? results.map(r => Components.cruiseItem(r.holiday, r.shipInfo)).join('')
+        : '<div class="empty-state"><span class="emoji">📅</span><p>예정된 크루즈가 없습니다</p></div>';
+    }
+
+    function switchTab(id, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + id)?.classList.add('active');
+    }
+
+    load();
+  </script>
+</body>
+</html>

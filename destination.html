@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>크루즈링크 - 목적지별 크루즈</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚢</text></svg>">
+</head>
+<body>
+  <div id="header"></div>
+
+  <section class="hero" style="padding: 48px 0 72px;">
+    <div class="container">
+      <h1 id="destTitle">크루즈 검색</h1>
+      <p id="destSubtitle">목적지별 크루즈를 찾아보세요</p>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label>목적지</label>
+        <select id="filterDest">
+          <option value="">전체</option>
+          <option value="korea">한국/일본</option>
+          <option value="mediterranean">지중해</option>
+          <option value="alaska">알래스카</option>
+          <option value="caribbean">카리브해</option>
+          <option value="northern-europe">북유럽</option>
+          <option value="southeast-asia">동남아시아</option>
+          <option value="japan">일본</option>
+          <option value="hawaii">하와이</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>선사</label>
+        <select id="filterOperator">
+          <option value="">전체</option>
+          <option value="MSC">MSC Cruises</option>
+          <option value="Norwegian">Norwegian Cruise Line</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>출발월</label>
+        <select id="filterMonth"><option value="">전체</option></select>
+      </div>
+      <div class="filter-group">
+        <label>기간</label>
+        <select id="filterDuration">
+          <option value="">전체</option>
+          <option value="short">1~5박</option>
+          <option value="medium">6~10박</option>
+          <option value="long">11박 이상</option>
+        </select>
+      </div>
+      <button class="btn btn-orange" onclick="applyFilters()">🔍 검색</button>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <p class="section-subtitle" id="resultCount"></p>
+      <div id="cruiseList" class="cruise-list">
+        <div class="loading"><div class="loading-spinner"></div><p>크루즈 정보를 불러오는 중...</p></div>
+      </div>
+      <div id="pagination" class="pagination"></div>
+    </div>
+  </section>
+
+  <div id="ctaSection"></div>
+  <div id="footer"></div>
+
+  <script src="assets/data/translations.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/components.js"></script>
+  <script>
+    document.getElementById('header').innerHTML = Components.header('dest');
+    document.getElementById('footer').innerHTML = Components.footer();
+    document.getElementById('ctaSection').innerHTML = Components.ctaSection();
+
+    const params = new URLSearchParams(location.search);
+    const dest = params.get('dest') || '';
+    const PER_PAGE = 10;
+    let currentPage = 1;
+    let allResults = [];
+
+    // Set initial filter values from URL
+    if (dest) document.getElementById('filterDest').value = dest;
+    if (params.get('operator')) document.getElementById('filterOperator').value = params.get('operator');
+    if (params.get('duration')) document.getElementById('filterDuration').value = params.get('duration');
+
+    // Update title
+    if (dest && Translations.destNameKo[dest]) {
+      document.getElementById('destTitle').textContent = Translations.destNameKo[dest] + ' 크루즈';
+      document.getElementById('destSubtitle').textContent = `${Translations.destNameKo[dest]} 지역의 크루즈 상품을 확인하세요`;
+      document.title = `${Translations.destNameKo[dest]} 크루즈 - 크루즈링크`;
+    }
+
+    // Populate months
+    const monthSelect = document.getElementById('filterMonth');
+    const now = new Date();
+    for (let i = 0; i < 24; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      monthSelect.innerHTML += `<option value="${val}">${d.getFullYear()}년 ${d.getMonth() + 1}월</option>`;
+    }
+    if (params.get('month')) monthSelect.value = params.get('month');
+
+    async function loadCruises() {
+      const container = document.getElementById('cruiseList');
+      const opFilter = document.getElementById('filterOperator').value;
+      const monthFilter = document.getElementById('filterMonth').value;
+      const durFilter = document.getElementById('filterDuration').value;
+      const destFilter = document.getElementById('filterDest').value;
+
+      container.innerHTML = Components.loading();
+      allResults = [];
+
+      try {
+        const ships = await API.getAllShips();
+        const filteredShips = opFilter ? ships.filter(s => s.operator?.name?.includes(opFilter)) : ships;
+        const threeMonths = new Date(Date.now() + 90 * 86400000);
+
+        for (const ship of filteredShips) {
+          const match = ship.href?.match(/ships\/([^.]+)\.json/);
+          if (!match) continue;
+          const shipData = await API.getShip(match[1]);
+          if (!shipData?.cruises) continue;
+
+          for (const c of shipData.cruises) {
+            try {
+              const h = await API.getHoliday(c.ref);
+              if (!h?.date_from) continue;
+              const depDate = new Date(h.date_from);
+              if (depDate < threeMonths) continue;
+
+              // Destination filter
+              if (destFilter && !API.matchesDest(h, destFilter)) continue;
+
+              // Month filter
+              if (monthFilter) {
+                const [y, m] = monthFilter.split('-');
+                if (depDate.getFullYear() !== parseInt(y) || depDate.getMonth() + 1 !== parseInt(m)) continue;
+              }
+
+              // Duration filter
+              const nights = h.cruise_nights || h.duration_days || 0;
+              if (durFilter === 'short' && nights > 5) continue;
+              if (durFilter === 'medium' && (nights < 6 || nights > 10)) continue;
+              if (durFilter === 'long' && nights < 11) continue;
+
+              allResults.push({ holiday: h, shipInfo: { coverImage: ship.cover_image_href, operator: ship.operator?.name } });
+            } catch (e) { continue; }
+          }
+        }
+
+        allResults.sort((a, b) => new Date(a.holiday.date_from) - new Date(b.holiday.date_from));
+        currentPage = 1;
+        renderPage();
+      } catch (e) {
+        console.error(e);
+        container.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>데이터를 불러올 수 없습니다</p></div>';
+      }
+    }
+
+    function renderPage() {
+      const container = document.getElementById('cruiseList');
+      const pagination = document.getElementById('pagination');
+      const countEl = document.getElementById('resultCount');
+
+      countEl.textContent = `총 ${allResults.length}개의 크루즈`;
+
+      if (allResults.length === 0) {
+        container.innerHTML = '<div class="empty-state"><span class="emoji">🔍</span><p>조건에 맞는 크루즈가 없습니다. 다른 조건으로 검색해보세요.</p></div>';
+        pagination.innerHTML = '';
+        return;
+      }
+
+      const totalPages = Math.ceil(allResults.length / PER_PAGE);
+      const start = (currentPage - 1) * PER_PAGE;
+      const pageItems = allResults.slice(start, start + PER_PAGE);
+
+      container.innerHTML = pageItems.map(r => Components.cruiseItem(r.holiday, r.shipInfo)).join('');
+
+      // Pagination
+      if (totalPages > 1) {
+        let html = '';
+        for (let i = 1; i <= totalPages; i++) {
+          html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+        }
+        pagination.innerHTML = html;
+      } else {
+        pagination.innerHTML = '';
+      }
+    }
+
+    function goPage(p) {
+      currentPage = p;
+      renderPage();
+      window.scrollTo({ top: 300, behavior: 'smooth' });
+    }
+
+    function applyFilters() {
+      const d = document.getElementById('filterDest').value;
+      const op = document.getElementById('filterOperator').value;
+      const m = document.getElementById('filterMonth').value;
+      const dur = document.getElementById('filterDuration').value;
+      let url = 'destination.html?';
+      if (d) url += `dest=${d}&`;
+      if (op) url += `operator=${op}&`;
+      if (m) url += `month=${m}&`;
+      if (dur) url += `duration=${dur}&`;
+      location.href = url.slice(0, -1);
+    }
+
+    loadCruises();
+  </script>
+</body>
+</html>

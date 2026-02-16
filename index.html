@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>크루즈링크 - 프리미엄 크루즈 여행</title>
+  <meta name="description" content="MSC, NCL 크루즈 전문 - 지중해, 알래스카, 카리브해, 일본 크루즈 여행 상담">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚢</text></svg>">
+</head>
+<body>
+  <div id="header"></div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <h1>꿈의 크루즈 여행을 시작하세요</h1>
+      <p>MSC · Norwegian Cruise Line — 전 세계 크루즈를 한눈에</p>
+      <div class="hero-ctas">
+        <a href="https://pf.kakao.com/_xgYbJG" target="_blank" class="btn btn-orange">💬 카카오톡 상담</a>
+        <a href="tel:02-3788-9119" class="btn btn-white">📞 전화 상담</a>
+        <a href="mailto:info@londonshow.co.kr" class="btn btn-outline">✉️ 이메일 문의</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FILTER BAR -->
+  <div class="container">
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label>목적지</label>
+        <select id="filterDest">
+          <option value="">전체</option>
+          <option value="korea">한국/일본</option>
+          <option value="mediterranean">지중해</option>
+          <option value="alaska">알래스카</option>
+          <option value="caribbean">카리브해</option>
+          <option value="northern-europe">북유럽</option>
+          <option value="southeast-asia">동남아시아</option>
+          <option value="hawaii">하와이</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>선사</label>
+        <select id="filterOperator">
+          <option value="">전체</option>
+          <option value="MSC">MSC Cruises</option>
+          <option value="Norwegian">Norwegian Cruise Line</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>출발월</label>
+        <select id="filterMonth">
+          <option value="">전체</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>기간</label>
+        <select id="filterDuration">
+          <option value="">전체</option>
+          <option value="short">1~5박</option>
+          <option value="medium">6~10박</option>
+          <option value="long">11박 이상</option>
+        </select>
+      </div>
+      <button class="btn btn-orange" onclick="doSearch()">🔍 검색</button>
+    </div>
+  </div>
+
+  <!-- DESTINATIONS -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">인기 목적지</h2>
+      <p class="section-subtitle">전 세계 크루즈 목적지를 탐험하세요</p>
+      <div class="dest-grid">
+        <a href="destination.html?dest=korea" class="dest-card"><span class="emoji">🇰🇷</span><span class="name">한국/일본</span></a>
+        <a href="destination.html?dest=mediterranean" class="dest-card"><span class="emoji">🏛️</span><span class="name">지중해</span></a>
+        <a href="destination.html?dest=alaska" class="dest-card"><span class="emoji">🏔️</span><span class="name">알래스카</span></a>
+        <a href="destination.html?dest=caribbean" class="dest-card"><span class="emoji">🏝️</span><span class="name">카리브해</span></a>
+        <a href="destination.html?dest=northern-europe" class="dest-card"><span class="emoji">⚓</span><span class="name">북유럽</span></a>
+        <a href="destination.html?dest=southeast-asia" class="dest-card"><span class="emoji">🌺</span><span class="name">동남아시아</span></a>
+        <a href="destination.html?dest=japan" class="dest-card"><span class="emoji">🗾</span><span class="name">일본</span></a>
+        <a href="destination.html?dest=hawaii" class="dest-card"><span class="emoji">🌴</span><span class="name">하와이</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROMO SLIDER -->
+  <section class="section" style="background: var(--gray-50);">
+    <div class="container">
+      <div class="promo-slider">
+        <div class="promo-slides" id="promoSlides">
+          <div class="promo-slide" style="background: linear-gradient(135deg, #1a237e, #283593);">
+            <h3>🌊 2025 지중해 크루즈 특가</h3>
+            <p>바르셀로나, 로마, 산토리니... 지중해의 보석같은 도시들을 만나보세요</p>
+            <a href="destination.html?dest=mediterranean" class="btn btn-orange" style="width:fit-content">지중해 크루즈 보기 →</a>
+          </div>
+          <div class="promo-slide" style="background: linear-gradient(135deg, #0d47a1, #1565c0);">
+            <h3>❄️ 알래스카 빙하 크루즈</h3>
+            <p>장엄한 빙하와 야생 동물, 대자연의 경이로움을 경험하세요</p>
+            <a href="destination.html?dest=alaska" class="btn btn-orange" style="width:fit-content">알래스카 크루즈 보기 →</a>
+          </div>
+          <div class="promo-slide" style="background: linear-gradient(135deg, #e65100, #ff6f00);">
+            <h3>🎌 한국/일본 출발 크루즈</h3>
+            <p>부산, 후쿠오카, 나가사키, 오키나와 — 가까운 크루즈 여행</p>
+            <a href="destination.html?dest=korea" class="btn btn-white" style="width:fit-content">아시아 크루즈 보기 →</a>
+          </div>
+        </div>
+      </div>
+      <div class="promo-dots" id="promoDots"></div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDED CRUISES -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">추천 크루즈</h2>
+      <p class="section-subtitle">가까운 출발일 기준 엄선된 크루즈</p>
+      <div id="recommendedCruises" class="cruise-grid">
+        <div class="loading"><div class="loading-spinner"></div><p>크루즈 정보를 불러오는 중...</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEARCH RESULTS (hidden by default) -->
+  <section class="section" id="searchResults" style="display:none; background: var(--gray-50);">
+    <div class="container">
+      <h2 class="section-title">검색 결과</h2>
+      <p class="section-subtitle" id="searchCount"></p>
+      <div id="searchList" class="cruise-list"></div>
+    </div>
+  </section>
+
+  <div id="ctaSection"></div>
+  <div id="footer"></div>
+
+  <script src="assets/data/translations.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/components.js"></script>
+  <script>
+    // Render shared components
+    document.getElementById('header').innerHTML = Components.header('home');
+    document.getElementById('footer').innerHTML = Components.footer();
+    document.getElementById('ctaSection').innerHTML = Components.ctaSection();
+
+    // Populate month filter
+    const monthSelect = document.getElementById('filterMonth');
+    const now = new Date();
+    for (let i = 0; i < 24; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
+      monthSelect.innerHTML += `<option value="${val}">${label}</option>`;
+    }
+
+    // Promo slider
+    let promoIdx = 0;
+    const slides = document.getElementById('promoSlides');
+    const dotsContainer = document.getElementById('promoDots');
+    for (let i = 0; i < 3; i++) {
+      const dot = document.createElement('button');
+      dot.className = 'promo-dot' + (i === 0 ? ' active' : '');
+      dot.onclick = () => { promoIdx = i; updatePromo(); };
+      dotsContainer.appendChild(dot);
+    }
+    function updatePromo() {
+      slides.style.transform = `translateX(-${promoIdx * 100}%)`;
+      dotsContainer.querySelectorAll('.promo-dot').forEach((d, i) => d.classList.toggle('active', i === promoIdx));
+    }
+    setInterval(() => { promoIdx = (promoIdx + 1) % 3; updatePromo(); }, 5000);
+
+    // Load recommended cruises
+    async function loadRecommended() {
+      const container = document.getElementById('recommendedCruises');
+      try {
+        const ships = await API.getAllShips();
+        // Pick first 6 ships, get their nearest cruise
+        const selected = ships.slice(0, 12);
+        const holidays = [];
+        const threeMonths = new Date(Date.now() + 90 * 86400000);
+
+        for (const ship of selected) {
+          if (holidays.length >= 9) break;
+          const match = ship.href?.match(/ships\/([^.]+)\.json/);
+          if (!match) continue;
+          const slug = match[1];
+          const shipData = await API.getShip(slug);
+          if (!shipData?.cruises?.length) continue;
+
+          // Find nearest future cruise
+          for (const c of shipData.cruises.slice(0, 20)) {
+            if (holidays.length >= 9) break;
+            try {
+              const h = await API.getHoliday(c.ref);
+              if (!h || !h.date_from) continue;
+              const depDate = new Date(h.date_from);
+              if (depDate < threeMonths) continue;
+              holidays.push({ holiday: h, shipInfo: { coverImage: ship.cover_image_href, operator: ship.operator?.name } });
+              break; // one per ship
+            } catch (e) { continue; }
+          }
+        }
+
+        // Sort by departure date
+        holidays.sort((a, b) => new Date(a.holiday.date_from) - new Date(b.holiday.date_from));
+
+        if (holidays.length === 0) {
+          container.innerHTML = '<div class="empty-state"><span class="emoji">🔍</span><p>표시할 크루즈가 없습니다</p></div>';
+          return;
+        }
+
+        container.innerHTML = holidays.map(h => Components.cruiseCard(h.holiday, h.shipInfo)).join('');
+      } catch (e) {
+        console.error(e);
+        container.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>데이터를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.</p></div>';
+      }
+    }
+
+    // Search
+    async function doSearch() {
+      const dest = document.getElementById('filterDest').value;
+      if (dest) {
+        // Redirect to destination page with filters
+        let url = `destination.html?dest=${dest}`;
+        const op = document.getElementById('filterOperator').value;
+        const month = document.getElementById('filterMonth').value;
+        const dur = document.getElementById('filterDuration').value;
+        if (op) url += `&operator=${op}`;
+        if (month) url += `&month=${month}`;
+        if (dur) url += `&duration=${dur}`;
+        location.href = url;
+        return;
+      }
+
+      // Search across all
+      const resultsSection = document.getElementById('searchResults');
+      const searchList = document.getElementById('searchList');
+      const searchCount = document.getElementById('searchCount');
+      resultsSection.style.display = 'block';
+      searchList.innerHTML = Components.loading();
+
+      const op = document.getElementById('filterOperator').value;
+      const month = document.getElementById('filterMonth').value;
+      const dur = document.getElementById('filterDuration').value;
+
+      try {
+        const ships = await API.getAllShips();
+        const filteredShips = op ? ships.filter(s => s.operator?.name?.includes(op)) : ships;
+        const results = [];
+        const threeMonths = new Date(Date.now() + 90 * 86400000);
+
+        for (const ship of filteredShips.slice(0, 15)) {
+          if (results.length >= 20) break;
+          const match = ship.href?.match(/ships\/([^.]+)\.json/);
+          if (!match) continue;
+          const shipData = await API.getShip(match[1]);
+          if (!shipData?.cruises) continue;
+
+          for (const c of shipData.cruises.slice(0, 30)) {
+            if (results.length >= 20) break;
+            try {
+              const h = await API.getHoliday(c.ref);
+              if (!h?.date_from) continue;
+              const depDate = new Date(h.date_from);
+              if (depDate < threeMonths) continue;
+              // Month filter
+              if (month) {
+                const [y, m] = month.split('-');
+                if (depDate.getFullYear() !== parseInt(y) || depDate.getMonth() + 1 !== parseInt(m)) continue;
+              }
+              // Duration filter
+              const nights = h.cruise_nights || h.duration_days || 0;
+              if (dur === 'short' && nights > 5) continue;
+              if (dur === 'medium' && (nights < 6 || nights > 10)) continue;
+              if (dur === 'long' && nights < 11) continue;
+
+              results.push({ holiday: h, shipInfo: { coverImage: ship.cover_image_href, operator: ship.operator?.name } });
+            } catch (e) { continue; }
+          }
+        }
+
+        results.sort((a, b) => new Date(a.holiday.date_from) - new Date(b.holiday.date_from));
+        searchCount.textContent = `${results.length}개의 크루즈를 찾았습니다`;
+        searchList.innerHTML = results.length
+          ? results.map(r => Components.cruiseItem(r.holiday, r.shipInfo)).join('')
+          : '<div class="empty-state"><span class="emoji">🔍</span><p>조건에 맞는 크루즈가 없습니다</p></div>';
+
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
+      } catch (e) {
+        searchList.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>검색 중 오류가 발생했습니다</p></div>';
+      }
+    }
+
+    loadRecommended();
+  </script>
+</body>
+</html>

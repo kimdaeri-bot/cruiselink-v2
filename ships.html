@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>선박 목록 - 크루즈링크</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚢</text></svg>">
+</head>
+<body>
+  <div id="header"></div>
+
+  <section class="hero" style="padding: 48px 0 60px;">
+    <div class="container">
+      <h1>크루즈 선박</h1>
+      <p>MSC Cruises & Norwegian Cruise Line — 총 47척의 선박을 만나보세요</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap">
+        <button class="btn btn-navy btn-sm" onclick="filterShips('')" id="btn-all">전체</button>
+        <button class="btn btn-outline btn-sm" style="color:var(--navy);border-color:var(--gray-300)" onclick="filterShips('MSC')" id="btn-msc">MSC Cruises</button>
+        <button class="btn btn-outline btn-sm" style="color:var(--navy);border-color:var(--gray-300)" onclick="filterShips('Norwegian')" id="btn-ncl">Norwegian Cruise Line</button>
+      </div>
+      <div id="shipGrid" class="ship-grid">
+        <div class="loading"><div class="loading-spinner"></div><p>선박 정보를 불러오는 중...</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="ctaSection"></div>
+  <div id="footer"></div>
+
+  <script src="assets/data/translations.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/components.js"></script>
+  <script>
+    document.getElementById('header').innerHTML = Components.header('ships');
+    document.getElementById('footer').innerHTML = Components.footer();
+    document.getElementById('ctaSection').innerHTML = Components.ctaSection();
+
+    let allShips = [];
+
+    async function loadShips() {
+      const grid = document.getElementById('shipGrid');
+      try {
+        allShips = await API.getAllShips();
+        renderShips('');
+      } catch (e) {
+        grid.innerHTML = '<div class="empty-state"><span class="emoji">⚠️</span><p>선박 정보를 불러올 수 없습니다</p></div>';
+      }
+    }
+
+    function renderShips(filter) {
+      const grid = document.getElementById('shipGrid');
+      const filtered = filter ? allShips.filter(s => s.operator?.name?.includes(filter)) : allShips;
+
+      grid.innerHTML = filtered.map(s => {
+        const slug = s.href?.match(/ships\/([^.]+)\.json/)?.[1] || '';
+        const facts = s.ship_facts || {};
+        return `
+        <div class="ship-card" onclick="location.href='ship-detail.html?slug=${slug}'">
+          <div class="ship-card-img">
+            <img src="${s.cover_image_href || ''}" alt="${s.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=\\'height:180px;display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--gray-100)\\'>🚢</div>'">
+          </div>
+          <div class="ship-card-body">
+            <h3>${s.title}</h3>
+            <div class="ship-class">${s.operator?.name || ''} · ${s.ship_class || ''}</div>
+            <div class="ship-card-specs">
+              <div class="spec">취항 <strong>${facts.launch_year || '-'}</strong></div>
+              <div class="spec">정원 <strong>${facts.capacity ? facts.capacity.toLocaleString() : '-'}</strong></div>
+              <div class="spec">데크 <strong>${facts.deck_count || '-'}개</strong></div>
+              <div class="spec">톤수 <strong>${facts.gross_tonnage ? (facts.gross_tonnage/1000).toFixed(0) + 'K' : '-'}</strong></div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+      // Update button states
+      document.querySelectorAll('[id^="btn-"]').forEach(b => {
+        b.className = 'btn btn-sm ' + (
+          (filter === '' && b.id === 'btn-all') ||
+          (filter === 'MSC' && b.id === 'btn-msc') ||
+          (filter === 'Norwegian' && b.id === 'btn-ncl')
+            ? 'btn-navy' : 'btn-outline'
+        );
+        if (!b.classList.contains('btn-navy')) b.style.cssText = 'color:var(--navy);border-color:var(--gray-300)';
+        else b.style.cssText = '';
+      });
+    }
+
+    function filterShips(filter) { renderShips(filter); }
+
+    loadShips();
+  </script>
+</body>
+</html>
